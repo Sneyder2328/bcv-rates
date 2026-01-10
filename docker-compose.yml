@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: bcv-rates-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bcv_rates
+      POSTGRES_USER: bcv_rates_user
+      POSTGRES_PASSWORD: bcv_rates_password
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bcv_rates_user -d bcv_rates"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
