@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Check, Copy } from "lucide-react";
 import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
 import { formatAmount, parseAmount } from "../utils/formatters.ts";
@@ -17,19 +19,48 @@ export function CustomRateInput({
     onAmountChange,
     disabled = false,
 }: CustomRateInputProps) {
+    const [rateCopied, setRateCopied] = useState(false);
+    const [amountCopied, setAmountCopied] = useState(false);
+
     const parsedRate = parseAmount(rateValue);
     const formattedRate = parsedRate !== null && parsedRate > 0 ? formatAmount(parsedRate) : null;
+
+    const handleCopy = async (text: string, setCopied: (val: boolean) => void) => {
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error("Failed to copy:", err);
+        }
+    };
 
     return (
         <div className="space-y-3 sm:space-y-4">
             {/* Rate Input */}
             <div className="space-y-1 sm:space-y-2">
-                <Label
-                    htmlFor="custom-rate"
-                    className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"
-                >
-                    Tasa Personalizada (1 = X Bs)
-                </Label>
+                <div className="flex items-center justify-between">
+                    <Label
+                        htmlFor="custom-rate"
+                        className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"
+                    >
+                        Tasa Personalizada (1 = X Bs)
+                    </Label>
+                    <button
+                        onClick={() => handleCopy(rateValue, setRateCopied)}
+                        disabled={!rateValue}
+                        className="text-zinc-500 hover:text-zinc-300 disabled:opacity-30 disabled:hover:text-zinc-500 transition-colors p-1 -mr-1"
+                        title="Copiar tasa"
+                        type="button"
+                    >
+                        {rateCopied ? (
+                            <Check size={14} className="text-emerald-500" />
+                        ) : (
+                            <Copy size={14} />
+                        )}
+                    </button>
+                </div>
                 <div className="relative group">
                     <Input
                         id="custom-rate"
@@ -48,12 +79,27 @@ export function CustomRateInput({
 
             {/* Amount Input */}
             <div className="space-y-1 sm:space-y-2">
-                <Label
-                    htmlFor="custom-amount"
-                    className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"
-                >
-                    Cantidad Personalizada
-                </Label>
+                <div className="flex items-center justify-between">
+                    <Label
+                        htmlFor="custom-amount"
+                        className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"
+                    >
+                        Cantidad Personalizada
+                    </Label>
+                    <button
+                        onClick={() => handleCopy(amountValue, setAmountCopied)}
+                        disabled={!amountValue}
+                        className="text-zinc-500 hover:text-zinc-300 disabled:opacity-30 disabled:hover:text-zinc-500 transition-colors p-1 -mr-1"
+                        title="Copiar cantidad"
+                        type="button"
+                    >
+                        {amountCopied ? (
+                            <Check size={14} className="text-emerald-500" />
+                        ) : (
+                            <Copy size={14} />
+                        )}
+                    </button>
+                </div>
                 <div className="relative group">
                     <Input
                         id="custom-amount"

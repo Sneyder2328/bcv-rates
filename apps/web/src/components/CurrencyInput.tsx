@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Check, Copy } from "lucide-react";
 import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
 
@@ -42,19 +44,42 @@ export function CurrencyInput({
     exchangeRate,
     inputSize = "sm",
 }: CurrencyInputProps) {
+    const [copied, setCopied] = useState(false);
     const colors = focusColorClasses[focusColor];
     const height = inputSize === "lg" ? "h-12 sm:h-14" : "h-12";
     const fontSize = inputSize === "lg" ? "text-lg" : "";
     const padding = inputSize === "lg" ? "pl-4 pr-12" : "";
 
+    const handleCopy = async () => {
+        if (!value) return;
+        try {
+            await navigator.clipboard.writeText(value);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error("Failed to copy:", err);
+        }
+    };
+
     return (
         <div className="space-y-1 sm:space-y-2">
-            <Label
-                htmlFor={id}
-                className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"
-            >
-                {label}
-            </Label>
+            <div className="flex items-center justify-between">
+                <Label
+                    htmlFor={id}
+                    className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"
+                >
+                    {label}
+                </Label>
+                <button
+                    onClick={handleCopy}
+                    disabled={!value}
+                    className="text-zinc-500 hover:text-zinc-300 disabled:opacity-30 disabled:hover:text-zinc-500 transition-colors p-1 -mr-1"
+                    title="Copiar cantidad"
+                    type="button"
+                >
+                    {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                </button>
+            </div>
             <div className="relative group">
                 <Input
                     id={id}
