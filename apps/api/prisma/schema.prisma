@@ -28,3 +28,14 @@ model ExchangeRate {
   @@unique([currency, validAt])
   @@index([currency, validAt])
 }
+
+model HistoricalExchangeRate {
+  id        String       @id @default(cuid())
+  currency  CurrencyCode
+  rate      Decimal      @db.Decimal(20, 10)
+  date      DateTime     @db.Date
+  fetchedAt DateTime     @default(now())
+
+  @@unique([currency, date])
+  @@index([currency, date])
+}

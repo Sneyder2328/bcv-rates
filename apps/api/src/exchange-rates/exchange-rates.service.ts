@@ -84,6 +84,17 @@ export class ExchangeRatesService implements OnModuleInit {
         create: { currency: CurrencyCode.EUR, validAt, rate: eur, fetchedAt },
         update: { rate: eur, fetchedAt },
       }),
+      // Historical Records
+      this.prisma.historicalExchangeRate.upsert({
+        where: { currency_date: { currency: CurrencyCode.USD, date: validAt } },
+        create: { currency: CurrencyCode.USD, date: validAt, rate: usd, fetchedAt },
+        update: { rate: usd, fetchedAt },
+      }),
+      this.prisma.historicalExchangeRate.upsert({
+        where: { currency_date: { currency: CurrencyCode.EUR, date: validAt } },
+        create: { currency: CurrencyCode.EUR, date: validAt, rate: eur, fetchedAt },
+        update: { rate: eur, fetchedAt },
+      }),
     ]);
 
     this.logger.log(
