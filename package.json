@@ -12,6 +12,7 @@
     "db:generate": "pnpm --filter api db:generate",
     "db:push": "pnpm --filter api db:push",
     "db:migrate": "pnpm --filter api db:migrate",
+    "db:migrate:deploy": "pnpm --filter api db:migrate:deploy",
     "db:studio": "pnpm --filter api db:studio"
   },
   "keywords": [],

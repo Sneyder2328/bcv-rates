@@ -85,7 +85,7 @@ jobs:
             echo "✓ Prisma client generated"
 
             echo "→ Running database migrations..."
-            pnpm --filter @bcv-rates/api db:migrate
+            pnpm --filter @bcv-rates/api db:migrate:deploy
             echo "✓ Migrations applied"
 
             echo "→ Building API..."
