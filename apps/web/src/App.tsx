@@ -77,7 +77,8 @@ function App() {
         setError(null);
         setLoading(true);
 
-        const res = await fetch("/api/exchange-rates/latest");
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+        const res = await fetch(`${apiBaseUrl}/api/exchange-rates/latest`);
         if (!res.ok) {
           throw new Error(
             `No se pudieron cargar las tasas (HTTP ${res.status})`,
