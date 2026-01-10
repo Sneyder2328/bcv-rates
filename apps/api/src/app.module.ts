@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ExchangeRatesModule } from "./exchange-rates/exchange-rates.module.js";
 import { PrismaModule } from "./prisma/prisma.module.js";
+import { TrpcModule } from "./trpc/trpc.module.js";
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { PrismaModule } from "./prisma/prisma.module.js";
     PrismaModule,
     ScheduleModule.forRoot(),
     ExchangeRatesModule,
+    TrpcModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }

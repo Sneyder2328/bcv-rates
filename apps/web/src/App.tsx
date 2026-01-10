@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Toaster } from "sonner";
 import { Card, CardContent } from "./components/ui/card.tsx";
 import { BackgroundDecoration } from "./components/BackgroundDecoration.tsx";
@@ -10,27 +10,50 @@ import {
   formatAmount,
   parseAmount,
 } from "./utils/formatters.ts";
-
-type LatestRate = {
-  rate: string;
-  validAt: string;
-  fetchedAt: string;
-};
-
-type LatestRatesResponse = {
-  USD: LatestRate | null;
-  EUR: LatestRate | null;
-};
+import { trpc } from "./trpc/client.ts";
 
 function App() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [rates, setRates] = useState<{
-    usd: number;
-    eur: number;
-    validAt: string;
-    fetchedAt: string;
-  } | null>(null);
+  // Use tRPC to fetch the latest exchange rates with React Query
+  const {
+    data: latestRates,
+    isLoading: loading,
+    error: queryError,
+  } = trpc.exchangeRates.getLatest.useQuery();
+
+  // Derive rates from the tRPC response
+  const rates = useMemo(() => {
+    if (!latestRates) return null;
+
+    const usdRate = latestRates.USD
+      ? Number.parseFloat(latestRates.USD.rate)
+      : Number.NaN;
+    const eurRate = latestRates.EUR
+      ? Number.parseFloat(latestRates.EUR.rate)
+      : Number.NaN;
+
+    if (!Number.isFinite(usdRate) || !Number.isFinite(eurRate)) {
+      return null;
+    }
+
+    return {
+      usd: usdRate,
+      eur: eurRate,
+      validAt:
+        latestRates.USD?.validAt ??
+        latestRates.EUR?.validAt ??
+        new Date().toISOString(),
+      fetchedAt:
+        latestRates.USD?.fetchedAt ??
+        latestRates.EUR?.fetchedAt ??
+        new Date().toISOString(),
+    };
+  }, [latestRates]);
+
+  // Derive error message from tRPC error
+  const error = useMemo(() => {
+    if (!queryError) return null;
+    return queryError.message || "Error inesperado cargando las tasas.";
+  }, [queryError]);
 
   const [bolivars, setBolivars] = useState("");
   const [usd, setUsd] = useState("");
@@ -54,70 +77,6 @@ function App() {
 
     return `Fecha Valor: ${dateText}`;
   }, [error, loading, rates]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadRates() {
-      try {
-        setError(null);
-        setLoading(true);
-
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-        const res = await fetch(`${apiBaseUrl}/api/exchange-rates/latest`);
-        if (!res.ok) {
-          throw new Error(
-            `No se pudieron cargar las tasas (HTTP ${res.status})`,
-          );
-        }
-
-        const data = (await res.json()) as LatestRatesResponse;
-        const usdRate = data.USD
-          ? Number.parseFloat(String(data.USD.rate))
-          : Number.NaN;
-        const eurRate = data.EUR
-          ? Number.parseFloat(String(data.EUR.rate))
-          : Number.NaN;
-
-        if (!Number.isFinite(usdRate) || !Number.isFinite(eurRate)) {
-          throw new Error("La API devolvió tasas inválidas.");
-        }
-
-        if (!cancelled) {
-          setRates({
-            usd: usdRate,
-            eur: eurRate,
-            validAt:
-              data.USD?.validAt ??
-              data.EUR?.validAt ??
-              new Date().toISOString(),
-            fetchedAt:
-              data.USD?.fetchedAt ??
-              data.EUR?.fetchedAt ??
-              new Date().toISOString(),
-          });
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setRates(null);
-          setError(
-            err instanceof Error
-              ? err.message
-              : "Error inesperado cargando las tasas.",
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    }
-
-    void loadRates();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   function onBolivarsChange(next: string) {
     setBolivars(next);
