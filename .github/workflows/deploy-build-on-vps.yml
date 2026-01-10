@@ -1,0 +1,142 @@
+name: Deploy Cambio API on VPS
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  APP_DIR: ${{ vars.APP_DIR }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pull code & create environment
+        uses: appleboy/ssh-action@v1.1.0
+        env:
+          CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_CONNECTION_TIMEOUT_MS: ${{ vars.DATABASE_CONNECTION_TIMEOUT_MS }}
+          DATABASE_IDLE_TIMEOUT_MS: ${{ vars.DATABASE_IDLE_TIMEOUT_MS }}
+          DATABASE_POOL_SIZE: ${{ vars.DATABASE_POOL_SIZE }}
+          DATABASE_MIN_CONNECTIONS: ${{ vars.DATABASE_MIN_CONNECTIONS }}
+          BCV_ALLOW_INSECURE_TLS: ${{ vars.BCV_ALLOW_INSECURE_TLS }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          envs: APP_DIR,CORS_ORIGINS,DATABASE_URL,DATABASE_CONNECTION_TIMEOUT_MS,DATABASE_IDLE_TIMEOUT_MS,DATABASE_POOL_SIZE,DATABASE_MIN_CONNECTIONS,BCV_ALLOW_INSECURE_TLS
+          script: |
+            set -euo pipefail
+            cd "$APP_DIR"
+
+            echo "→ Pulling latest code..."
+            git fetch origin main
+            git checkout main
+            git reset --hard origin/main
+            echo "✓ Code updated to $(git rev-parse --short HEAD)"
+
+            # Build/deploy metadata (used by GET /api/server-version)
+            SERVER_VERSION="$(git rev-parse HEAD)"
+            SERVER_BUILD_TIME_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+            echo "→ Creating environment file..."
+            {
+              echo "NODE_ENV=production"
+              echo "PORT=3006"
+              echo "SERVER_VERSION=${SERVER_VERSION}"
+              echo "SERVER_BUILD_TIME_UTC=${SERVER_BUILD_TIME_UTC}"
+              echo "CORS_ORIGINS=${CORS_ORIGINS}"
+              echo "DATABASE_URL=${DATABASE_URL}"
+              echo "DATABASE_CONNECTION_TIMEOUT_MS=${DATABASE_CONNECTION_TIMEOUT_MS}"
+              echo "DATABASE_IDLE_TIMEOUT_MS=${DATABASE_IDLE_TIMEOUT_MS}"
+              echo "DATABASE_POOL_SIZE=${DATABASE_POOL_SIZE}"
+              echo "DATABASE_MIN_CONNECTIONS=${DATABASE_MIN_CONNECTIONS}"
+              echo "BCV_ALLOW_INSECURE_TLS=${BCV_ALLOW_INSECURE_TLS}"
+            } > .env
+            echo "✓ Environment file created"
+            echo "SERVER_VERSION=${SERVER_VERSION}"
+            echo "SERVER_BUILD_TIME_UTC=${SERVER_BUILD_TIME_UTC}"
+
+      - name: Install, migrate & build
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          command_timeout: 5m
+          envs: APP_DIR
+          script: |
+            set -euo pipefail
+            export CI=true
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            cd "$APP_DIR"
+
+            echo "→ Installing dependencies..."
+            pnpm install --frozen-lockfile
+            echo "✓ Dependencies installed"
+
+            echo "→ Generating Prisma client..."
+            pnpm --filter @bcv-rates/api db:generate
+            echo "✓ Prisma client generated"
+
+            echo "→ Running database migrations..."
+            pnpm --filter @bcv-rates/api db:migrate
+            echo "✓ Migrations applied"
+
+            echo "→ Building API..."
+            pnpm --filter @bcv-rates/api build
+            echo "✓ API built"
+
+            echo "→ Building web app..."
+            pnpm --filter @bcv-rates/web build
+            echo "✓ Web app built"
+
+      - name: Restart services & update nginx
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          envs: APP_DIR
+          script: |
+            set -euo pipefail
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            cd "$APP_DIR"
+
+            echo "→ Restarting API service..."
+            # Choose the appropriate restart command based on your deployment method:
+
+            # Option 1: systemd service
+            # sudo systemctl restart bcv-rates-api
+
+            # Option 2: PM2 (if you have ecosystem.config.js)
+            # pm2 reload ecosystem.config.js --env production || pm2 start ecosystem.config.js --env production
+            # pm2 save
+
+            # Option 3: Docker Compose
+            # docker-compose restart api
+
+            # Option 4: Direct Node.js process (not recommended for production)
+            # pkill -f "node.*dist/src/main" || true
+            # cd "$APP_DIR/apps/api" && NODE_ENV=production node dist/src/main.js &
+
+            # TODO: Uncomment and modify the appropriate command for your deployment method
+            echo "⚠️  Please configure the appropriate restart command for your deployment method"
+            echo "✓ API service restart command executed (placeholder)"
+
+            echo "→ Checking nginx config..."
+            if ! diff -q "$APP_DIR/deploy/nginx/cambio.conf" /etc/nginx/sites-available/cambio > /dev/null 2>&1; then
+              echo "  Nginx config changed, updating..."
+              sudo /usr/bin/cp "$APP_DIR/deploy/nginx/cambio.conf" /etc/nginx/sites-available/cambio
+              sudo /usr/sbin/nginx -t && sudo /usr/bin/systemctl reload nginx
+              echo "✓ Nginx config updated and reloaded"
+            else
+              echo "✓ Nginx config unchanged"
+            fi
