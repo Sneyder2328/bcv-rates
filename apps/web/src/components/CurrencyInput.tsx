@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
+import { toast } from "sonner";
 import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
 
@@ -55,9 +56,11 @@ export function CurrencyInput({
         try {
             await navigator.clipboard.writeText(value);
             setCopied(true);
+            toast.success(`${value} ${symbol} copiado al portapapeles`);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
             console.error("Failed to copy:", err);
+            toast.error("Error al copiar");
         }
     };
 

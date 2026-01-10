@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
+import { toast } from "sonner";
 import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
 import { formatAmount, parseAmount } from "../utils/formatters.ts";
@@ -25,14 +26,16 @@ export function CustomRateInput({
     const parsedRate = parseAmount(rateValue);
     const formattedRate = parsedRate !== null && parsedRate > 0 ? formatAmount(parsedRate) : null;
 
-    const handleCopy = async (text: string, setCopied: (val: boolean) => void) => {
+    const handleCopy = async (text: string, suffix: string, setCopied: (val: boolean) => void) => {
         if (!text) return;
         try {
             await navigator.clipboard.writeText(text);
             setCopied(true);
+            toast.success(`${text} ${suffix} copiado al portapapeles`);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
             console.error("Failed to copy:", err);
+            toast.error("Error al copiar");
         }
     };
 
@@ -48,7 +51,7 @@ export function CustomRateInput({
                         Tasa Personalizada (1 = X Bs)
                     </Label>
                     <button
-                        onClick={() => handleCopy(rateValue, setRateCopied)}
+                        onClick={() => handleCopy(rateValue, "Bs.", setRateCopied)}
                         disabled={!rateValue}
                         className="text-zinc-500 hover:text-zinc-300 disabled:opacity-30 disabled:hover:text-zinc-500 transition-colors p-1 -mr-1"
                         title="Copiar tasa"
@@ -87,7 +90,7 @@ export function CustomRateInput({
                         Cantidad Personalizada
                     </Label>
                     <button
-                        onClick={() => handleCopy(amountValue, setAmountCopied)}
+                        onClick={() => handleCopy(amountValue, "", setAmountCopied)}
                         disabled={!amountValue}
                         className="text-zinc-500 hover:text-zinc-300 disabled:opacity-30 disabled:hover:text-zinc-500 transition-colors p-1 -mr-1"
                         title="Copiar cantidad"

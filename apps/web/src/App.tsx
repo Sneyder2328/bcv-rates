@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Toaster } from "sonner";
 import { Card, CardContent } from "./components/ui/card.tsx";
 import { BackgroundDecoration } from "./components/BackgroundDecoration.tsx";
 import { CurrencyInput } from "./components/CurrencyInput.tsx";
@@ -313,6 +314,7 @@ function App() {
 
         <ExchangeRateFooter fetchedAt={rates?.fetchedAt} />
       </div>
+      <Toaster position="top-center" theme="dark" />
     </div>
   );
 }
