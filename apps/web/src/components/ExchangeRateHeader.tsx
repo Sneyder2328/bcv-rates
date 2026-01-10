@@ -14,13 +14,13 @@ export function ExchangeRateHeader({
             <div className="flex items-center justify-between">
                 <div>
                     <CardTitle className="text-2xl font-bold bg-gradient-to-br from-white to-zinc-400 bg-clip-text text-transparent">
-                        Convertidor BCV
+                        Convertidor (tasas del BCV)
                     </CardTitle>
                     <p className="mt-1 text-sm font-medium text-zinc-400/80">
                         {loading ? (
                             <span className="animate-pulse">Sincronizando tasas...</span>
                         ) : (
-                            'Data del BCV ' + statusLine
+                            statusLine
                         )}
                     </p>
                 </div>
