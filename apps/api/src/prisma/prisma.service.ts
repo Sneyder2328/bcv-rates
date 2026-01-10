@@ -1,7 +1,13 @@
-import { Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common'
-import type { ConfigService } from '@nestjs/config'
-import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '../../generated/prisma/client'
+import {
+  Injectable,
+  Logger,
+  type OnModuleDestroy,
+  type OnModuleInit,
+} from "@nestjs/common";
+// biome-ignore lint/style/useImportType: ConfigService must be a runtime import so NestJS can emit DI metadata for constructor injection.
+import { ConfigService } from "@nestjs/config";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../../generated/prisma/client";
 
 /**
  * Extended Prisma service with connection pooling and lifecycle management.
@@ -32,8 +38,11 @@ import { PrismaClient } from '../../generated/prisma/client'
  * ```
  */
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(PrismaService.name)
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
+  private readonly logger = new Logger(PrismaService.name);
 
   /**
    * Creates a new PrismaService with connection pooling.
@@ -41,24 +50,26 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
    * @param configService - NestJS ConfigService for reading environment variables
    */
   constructor(readonly configService: ConfigService) {
-    const nodeEnv = configService.get<string>('NODE_ENV') || 'development'
+    const nodeEnv = configService.get<string>("NODE_ENV") || "development";
 
     const adapter = new PrismaPg({
-      connectionString: configService.get<string>('DATABASE_URL'),
-      maxConnections: configService.get<number>('DATABASE_POOL_SIZE'),
-      minConnections: configService.get<number>('DATABASE_MIN_CONNECTIONS') ,
-      connectionTimeout: configService.get<number>('DATABASE_CONNECTION_TIMEOUT_MS') ,
-      idleTimeout: configService.get<number>('DATABASE_IDLE_TIMEOUT_MS') 
-    })
+      connectionString: configService.get<string>("DATABASE_URL"),
+      maxConnections: configService.get<number>("DATABASE_POOL_SIZE"),
+      minConnections: configService.get<number>("DATABASE_MIN_CONNECTIONS"),
+      connectionTimeout: configService.get<number>(
+        "DATABASE_CONNECTION_TIMEOUT_MS",
+      ),
+      idleTimeout: configService.get<number>("DATABASE_IDLE_TIMEOUT_MS"),
+    });
 
     // Configure Prisma logging based on environment
-    const logLevels: ('query' | 'info' | 'warn' | 'error')[] =
-      nodeEnv === 'development' ? ['warn', 'error'] : ['error']
+    const logLevels: ("query" | "info" | "warn" | "error")[] =
+      nodeEnv === "development" ? ["warn", "error"] : ["error"];
 
     super({
       adapter,
       log: logLevels,
-    })
+    });
   }
 
   /**
@@ -68,15 +79,15 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
    * Logs success or failure for monitoring.
    */
   async onModuleInit() {
-    this.logger.log('Connecting to database...')
+    this.logger.log("Connecting to database...");
 
     // Connect to the database to validate the connection as prisma db connections are lazy loaded
-    await this.$connect()
+    await this.$connect();
 
     // Validate the connection by running a test query
-    await this.$queryRaw`SELECT 1`
+    await this.$queryRaw`SELECT 1`;
 
-    this.logger.log('Database connection established')
+    this.logger.log("Database connection established");
   }
 
   /**
@@ -86,8 +97,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
    * no connections are left open.
    */
   async onModuleDestroy() {
-    this.logger.log('Disconnecting from database...')
-    await this.$disconnect()
-    this.logger.log('Database connection closed')
+    this.logger.log("Disconnecting from database...");
+    await this.$disconnect();
+    this.logger.log("Database connection closed");
   }
 }

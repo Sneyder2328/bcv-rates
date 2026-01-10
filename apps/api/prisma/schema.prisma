@@ -12,3 +12,19 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum CurrencyCode {
+  USD
+  EUR
+}
+
+model ExchangeRate {
+  id        String       @id @default(cuid())
+  currency  CurrencyCode
+  rate      Decimal      @db.Decimal(20, 10)
+  validAt   DateTime
+  fetchedAt DateTime     @default(now())
+
+  @@unique([currency, validAt])
+  @@index([currency, validAt])
+}
