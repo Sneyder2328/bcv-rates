@@ -43,12 +43,12 @@ export function CurrencyInput({
     inputSize = "sm",
 }: CurrencyInputProps) {
     const colors = focusColorClasses[focusColor];
-    const height = inputSize === "lg" ? "h-14" : "h-12";
+    const height = inputSize === "lg" ? "h-12 sm:h-14" : "h-12";
     const fontSize = inputSize === "lg" ? "text-lg" : "";
     const padding = inputSize === "lg" ? "pl-4 pr-12" : "";
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-1 sm:space-y-2">
             <Label
                 htmlFor={id}
                 className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"

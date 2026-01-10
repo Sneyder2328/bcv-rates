@@ -13,7 +13,7 @@ export function ExchangeRateHeader({
         <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
                 <div>
-                    <CardTitle className="text-2xl font-bold bg-gradient-to-br from-white to-zinc-400 bg-clip-text text-transparent">
+                    <CardTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-br from-white to-zinc-400 bg-clip-text text-transparent">
                         Convertidor (tasas del BCV)
                     </CardTitle>
                     <p className="mt-1 text-sm font-medium text-zinc-400/80">
@@ -24,8 +24,8 @@ export function ExchangeRateHeader({
                         )}
                     </p>
                 </div>
-                <div className="h-10 w-10 rounded-xl bg-zinc-800/50 flex items-center justify-center ring-1 ring-white/10">
-                    <span className="text-xl">🇻🇪</span>
+                <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-zinc-800/50 flex items-center justify-center ring-1 ring-white/10">
+                    <span className="text-lg sm:text-xl">🇻🇪</span>
                 </div>
             </div>
         </CardHeader>

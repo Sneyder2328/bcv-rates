@@ -21,9 +21,9 @@ export function CustomRateInput({
     const formattedRate = parsedRate !== null && parsedRate > 0 ? formatAmount(parsedRate) : null;
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
             {/* Rate Input */}
-            <div className="space-y-2">
+            <div className="space-y-1 sm:space-y-2">
                 <Label
                     htmlFor="custom-rate"
                     className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"
@@ -47,7 +47,7 @@ export function CustomRateInput({
             </div>
 
             {/* Amount Input */}
-            <div className="space-y-2">
+            <div className="space-y-1 sm:space-y-2">
                 <Label
                     htmlFor="custom-amount"
                     className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"
@@ -69,7 +69,7 @@ export function CustomRateInput({
                     </div>
                 </div>
                 {formattedRate && (
-                    <p className="text-[11px] font-medium text-zinc-400 text-right px-1">
+                    <p className="text-[14px] font-medium text-zinc-400 text-right px-1">
                         1 = {formattedRate} Bs
                     </p>
                 )}

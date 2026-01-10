@@ -4,7 +4,7 @@ type ExchangeRateFooterProps = {
 
 export function ExchangeRateFooter({ fetchedAt }: ExchangeRateFooterProps) {
     return (
-        <div className="mt-6 text-center space-y-1">
+        <div className="mt-4 sm:mt-6 text-center space-y-1">
             <p className="text-s text-zinc-500 font-medium">
                 Fuente: Banco Central de Venezuela
             </p>
