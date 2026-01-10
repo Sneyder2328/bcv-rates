@@ -19,7 +19,7 @@ type LatestRate = {
 export class ExchangeRatesService implements OnModuleInit {
   private readonly logger = new Logger(ExchangeRatesService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   onModuleInit() {
     // Don’t block API startup on a remote fetch; just log if this fails.
@@ -31,7 +31,7 @@ export class ExchangeRatesService implements OnModuleInit {
     });
   }
 
-  @Cron("0 * * * *", { timeZone: "America/Caracas" })
+  @Cron("5 16,19 * * *", { timeZone: "America/Caracas" })
   async refreshFromBcvCron() {
     await this.refreshFromBcv("cron");
   }
@@ -54,17 +54,17 @@ export class ExchangeRatesService implements OnModuleInit {
     return {
       USD: usd
         ? {
-            rate: usd.rate,
-            validAt: usd.validAt,
-            fetchedAt: usd.fetchedAt,
-          }
+          rate: usd.rate,
+          validAt: usd.validAt,
+          fetchedAt: usd.fetchedAt,
+        }
         : null,
       EUR: eur
         ? {
-            rate: eur.rate,
-            validAt: eur.validAt,
-            fetchedAt: eur.fetchedAt,
-          }
+          rate: eur.rate,
+          validAt: eur.validAt,
+          fetchedAt: eur.fetchedAt,
+        }
         : null,
     };
   }
