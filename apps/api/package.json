@@ -30,12 +30,14 @@
     "@prisma/client": "^7.2.0",
     "@trpc/server": "^11.8.1",
     "dotenv": "^17.2.3",
+    "helmet": "^8.1.0",
     "reflect-metadata": "~0.2.2",
     "zod": "^4.3.5"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.14",
     "@nestjs/schematics": "^11.0.9",
+    "@types/helmet": "^4.0.0",
     "@types/node": "^25.0.5",
     "prisma": "^7.2.0",
     "typescript": "^5.9.3"
