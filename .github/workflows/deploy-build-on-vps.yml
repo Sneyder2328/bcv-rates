@@ -109,27 +109,11 @@ jobs:
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             cd "$APP_DIR"
-
-            echo "→ Restarting API service..."
-            # Choose the appropriate restart command based on your deployment method:
-
-            # Option 1: systemd service
-            # sudo systemctl restart bcv-rates-api
-
-            # Option 2: PM2 (if you have ecosystem.config.js)
-            # pm2 reload ecosystem.config.js --env production || pm2 start ecosystem.config.js --env production
-            # pm2 save
-
-            # Option 3: Docker Compose
-            # docker-compose restart api
-
-            # Option 4: Direct Node.js process (not recommended for production)
-            # pkill -f "node.*dist/src/main" || true
-            # cd "$APP_DIR/apps/api" && NODE_ENV=production node dist/src/main.js &
-
-            # TODO: Uncomment and modify the appropriate command for your deployment method
-            echo "⚠️  Please configure the appropriate restart command for your deployment method"
-            echo "✓ API service restart command executed (placeholder)"
+            <
+            echo "→ Restarting PM2..."
+            pm2 reload ecosystem.config.js --env production || pm2 start ecosystem.config.js --env production
+            pm2 save
+            echo "✓ PM2 restarted"
 
             echo "→ Checking nginx config..."
             if ! diff -q "$APP_DIR/deploy/nginx/cambio.conf" /etc/nginx/sites-available/cambio > /dev/null 2>&1; then
