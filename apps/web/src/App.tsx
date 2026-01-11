@@ -201,7 +201,7 @@ function App() {
   const disabled = loading || !rates;
 
   return (
-    <div className="relative min-h-screen w-full bg-[#09090b] text-zinc-100 flex items-center justify-center p-2 sm:p-4 font-sans overflow-hidden selection:bg-indigo-500/30">
+    <div className="relative min-h-screen w-full bg-[#09090b] text-zinc-100 flex items-center justify-center p-1 sm:p-4 font-sans overflow-hidden selection:bg-indigo-500/30">
       <BackgroundDecoration />
 
       <div className="relative z-10 w-full max-w-md animate-in fade-in zoom-in-95 duration-500">
@@ -219,7 +219,7 @@ function App() {
 
           <ExchangeRateHeader loading={loading} statusLine={statusLine} />
 
-          <CardContent className="space-y-4 pt-4 sm:space-y-6 sm:pt-6">
+          <CardContent className="space-y-3 pt-3 sm:space-y-6 sm:pt-6">
             {/* VES Input */}
             <CurrencyInput
               id="ves"
@@ -233,7 +233,7 @@ function App() {
             />
 
             {/* Divider */}
-            <div className="relative py-1 sm:py-2">
+            <div className="relative py-0.5 sm:py-2">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-zinc-800/50"></div>
               </div>
@@ -244,7 +244,7 @@ function App() {
               </div>
             </div>
 
-            <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
+            <div className="grid gap-2 sm:gap-4 sm:grid-cols-2">
               {/* USD Input */}
               <CurrencyInput
                 id="usd"
@@ -275,7 +275,7 @@ function App() {
             </div>
 
             {/* Custom Rate Divider */}
-            <div className="relative py-1 sm:py-2">
+            <div className="relative py-0.5 sm:py-2">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-zinc-800/50"></div>
               </div>
@@ -297,7 +297,7 @@ function App() {
             />
 
             {user && (
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-xs uppercase tracking-wider font-semibold text-zinc-500 ml-1">
                     Guardadas
