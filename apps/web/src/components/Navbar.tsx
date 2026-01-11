@@ -64,7 +64,7 @@ export function Navbar({ onOpenSettings, onOpenAuth }: NavbarProps) {
               type="button"
               onClick={onOpenSettings}
               className="inline-flex items-center justify-center rounded-xl bg-zinc-950/50 border border-zinc-800/80 px-2.5 py-2 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors disabled:opacity-50"
-              title="Settings"
+              title="Configuraciones"
             >
               <Settings size={18} />
             </button>

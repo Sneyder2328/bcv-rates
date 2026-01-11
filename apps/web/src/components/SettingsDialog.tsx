@@ -1,5 +1,5 @@
-import { Trash2, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Check, Pencil, Trash2, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "../auth/AuthProvider.tsx";
 import { trpc } from "../trpc/client.ts";
@@ -10,14 +10,9 @@ import { Label } from "./ui/label.tsx";
 type SettingsDialogProps = {
   open: boolean;
   onClose: () => void;
-  onUseCustomRate?: (label: string, rate: string) => void;
 };
 
-export function SettingsDialog({
-  open,
-  onClose,
-  onUseCustomRate,
-}: SettingsDialogProps) {
+export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const { user } = useAuth();
   const utils = trpc.useUtils();
 
@@ -31,6 +26,12 @@ export function SettingsDialog({
     },
   });
 
+  const updateMutation = trpc.customRates.update.useMutation({
+    onSuccess: async () => {
+      await utils.customRates.list.invalidate();
+    },
+  });
+
   const deleteMutation = trpc.customRates.delete.useMutation({
     onSuccess: async () => {
       await utils.customRates.list.invalidate();
@@ -39,12 +40,19 @@ export function SettingsDialog({
 
   const [label, setLabel] = useState("");
   const [rate, setRate] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingRate, setEditingRate] = useState("");
 
   const maxPerUser = listQuery.data?.maxPerUser ?? 10;
   const count = listQuery.data?.items.length ?? 0;
   const atLimit = count >= maxPerUser;
 
-  const title = useMemo(() => "Settings", []);
+  useEffect(() => {
+    if (!open) {
+      setEditingId(null);
+      setEditingRate("");
+    }
+  }, [open]);
 
   if (!open) return null;
 
@@ -76,6 +84,18 @@ export function SettingsDialog({
     }
   }
 
+  async function handleUpdate(id: string) {
+    try {
+      await updateMutation.mutateAsync({ id, rate: editingRate });
+      toast.success("Tasa actualizada");
+      setEditingId(null);
+      setEditingRate("");
+    } catch (err) {
+      console.error(err);
+      toast.error("No se pudo actualizar la tasa");
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <button
@@ -88,7 +108,9 @@ export function SettingsDialog({
       <div className="relative z-10 w-full max-w-md rounded-2xl border border-zinc-800/50 bg-zinc-900/70 backdrop-blur-xl ring-1 ring-white/5 shadow-2xl overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/50">
           <div>
-            <p className="text-sm font-semibold text-zinc-100">{title}</p>
+            <p className="text-sm font-semibold text-zinc-100">
+              Configuraciones
+            </p>
             <p className="text-xs text-zinc-500">
               Tus tasas guardadas ({count}/{maxPerUser})
             </p>
@@ -179,6 +201,7 @@ export function SettingsDialog({
                         const n = Number(r.rate);
                         return Number.isFinite(n) ? formatRate(n) : r.rate;
                       })();
+                      const isEditing = editingId === r.id;
 
                       return (
                         <div
@@ -189,27 +212,79 @@ export function SettingsDialog({
                             <p className="text-sm font-semibold text-zinc-100 truncate">
                               {r.label}
                             </p>
-                            <p className="text-xs text-zinc-500 truncate">
-                              1 {r.label} = {formatted} Bs
-                            </p>
+                            {isEditing ? (
+                              <div className="mt-2 flex items-center gap-2">
+                                <Input
+                                  id={`edit-rate-${r.id}`}
+                                  inputMode="decimal"
+                                  value={editingRate}
+                                  onChange={(e) =>
+                                    setEditingRate(e.target.value)
+                                  }
+                                  placeholder="0,00"
+                                  disabled={updateMutation.isPending}
+                                  className="h-10 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
+                                />
+                              </div>
+                            ) : (
+                              <p className="text-xs text-zinc-500 truncate">
+                                1 {r.label} = {formatted} Bs
+                              </p>
+                            )}
                           </div>
 
                           <div className="flex items-center gap-2">
-                            {onUseCustomRate && (
+                            {isEditing ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => void handleUpdate(r.id)}
+                                  disabled={
+                                    updateMutation.isPending ||
+                                    !editingRate.trim()
+                                  }
+                                  className="inline-flex items-center justify-center rounded-xl bg-zinc-950/50 border border-zinc-800/80 px-2.5 py-2 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors disabled:opacity-50"
+                                  title="Guardar"
+                                >
+                                  <Check size={16} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingId(null);
+                                    setEditingRate("");
+                                  }}
+                                  disabled={updateMutation.isPending}
+                                  className="inline-flex items-center justify-center rounded-xl bg-zinc-950/50 border border-zinc-800/80 px-2.5 py-2 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors disabled:opacity-50"
+                                  title="Cancelar"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </>
+                            ) : (
                               <button
                                 type="button"
-                                className="rounded-xl bg-zinc-950/50 border border-zinc-800/80 px-3 py-2 text-xs font-semibold text-zinc-200 hover:text-white hover:border-zinc-700 transition-colors"
-                                onClick={() =>
-                                  onUseCustomRate(r.label, formatted)
+                                onClick={() => {
+                                  setEditingId(r.id);
+                                  setEditingRate(formatted);
+                                }}
+                                disabled={
+                                  deleteMutation.isPending ||
+                                  updateMutation.isPending
                                 }
+                                className="inline-flex items-center justify-center rounded-xl bg-zinc-950/50 border border-zinc-800/80 px-2.5 py-2 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors disabled:opacity-50"
+                                title="Editar"
                               >
-                                Usar
+                                <Pencil size={16} />
                               </button>
                             )}
                             <button
                               type="button"
                               onClick={() => void handleDelete(r.id)}
-                              disabled={deleteMutation.isPending}
+                              disabled={
+                                deleteMutation.isPending ||
+                                updateMutation.isPending
+                              }
                               className="inline-flex items-center justify-center rounded-xl bg-zinc-950/50 border border-zinc-800/80 px-2.5 py-2 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors disabled:opacity-50"
                               title="Eliminar"
                             >

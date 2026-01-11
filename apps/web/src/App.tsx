@@ -11,7 +11,7 @@ import { Navbar } from "./components/Navbar.tsx";
 import { SettingsDialog } from "./components/SettingsDialog.tsx";
 import { Card, CardContent } from "./components/ui/card.tsx";
 import { trpc } from "./trpc/client.ts";
-import { formatAmount, parseAmount } from "./utils/formatters.ts";
+import { formatAmount, formatRate, parseAmount } from "./utils/formatters.ts";
 
 function App() {
   const { user } = useAuth();
@@ -68,6 +68,10 @@ function App() {
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const customRatesQuery = trpc.customRates.list.useQuery(undefined, {
+    enabled: !!user,
+  });
 
   useEffect(() => {
     if (!user) {
@@ -277,7 +281,7 @@ function App() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-[#121215] px-2 text-zinc-600 font-medium">
-                  Tasa Personalizada
+                  Tasas Personalizadas
                 </span>
               </div>
             </div>
@@ -291,6 +295,69 @@ function App() {
               disabled={disabled}
               unitLabel={customUnitLabel}
             />
+
+            {user && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-wider font-semibold text-zinc-500 ml-1">
+                    Guardadas
+                  </p>
+                  {customRatesQuery.data?.items.length ? (
+                    <p className="text-xs text-zinc-600">
+                      {customRatesQuery.data.items.length}
+                    </p>
+                  ) : null}
+                </div>
+
+                {customRatesQuery.isLoading ? (
+                  <p className="text-sm text-zinc-500">Cargando…</p>
+                ) : customRatesQuery.error ? (
+                  <p className="text-sm text-red-300">
+                    Error cargando tasas: {customRatesQuery.error.message}
+                  </p>
+                ) : customRatesQuery.data?.items.length ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {customRatesQuery.data.items.map((r) => {
+                      const n = Number(r.rate);
+                      const formatted = Number.isFinite(n)
+                        ? formatRate(n)
+                        : r.rate;
+                      const isActive = customUnitLabel === r.label;
+
+                      return (
+                        <button
+                          key={r.id}
+                          type="button"
+                          onClick={() => {
+                            setCustomUnitLabel(r.label);
+                            onCustomRateChange(formatted);
+                          }}
+                          className={[
+                            "rounded-xl border px-3 py-2 text-left transition-colors",
+                            isActive
+                              ? "border-indigo-500/50 bg-indigo-500/10"
+                              : "border-zinc-800/60 bg-zinc-950/40 hover:border-zinc-700/70",
+                          ].join(" ")}
+                          title={`Usar ${r.label}`}
+                        >
+                          <p className="text-sm font-semibold text-zinc-100 truncate">
+                            {r.label}
+                          </p>
+                          <p className="text-xs text-zinc-500 truncate">
+                            1 {r.label} = {formatted} Bs
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-zinc-500">
+                    Aún no tienes tasas guardadas. Abre Configuraciones para
+                    crear una.
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -308,11 +375,6 @@ function App() {
       <SettingsDialog
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
-        onUseCustomRate={(label, rate) => {
-          setCustomUnitLabel(label);
-          onCustomRateChange(rate);
-          setSettingsOpen(false);
-        }}
       />
     </div>
   );
