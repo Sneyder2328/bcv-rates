@@ -8,6 +8,7 @@ import type { NextFunction, Request, Response } from "express";
 import { PrismaModule } from "../prisma/prisma.module.js";
 // biome-ignore lint/style/useImportType: PrismaService must be a runtime import so NestJS can emit DI metadata for constructor injection.
 import { PrismaService } from "../prisma/prisma.service.js";
+import { createTrpcContext } from "./context.js";
 import { createAppRouter } from "./routers/app.router.js";
 
 @Module({
@@ -20,6 +21,7 @@ export class TrpcModule implements NestModule {
     const appRouter = createAppRouter(this.prisma);
     const handler = trpcExpress.createExpressMiddleware({
       router: appRouter,
+      createContext: createTrpcContext,
     });
 
     consumer

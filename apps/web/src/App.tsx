@@ -1,15 +1,21 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Toaster } from "sonner";
+import { useAuth } from "./auth/AuthProvider.tsx";
+import { AuthDialog } from "./components/AuthDialog.tsx";
 import { BackgroundDecoration } from "./components/BackgroundDecoration.tsx";
 import { CurrencyInput } from "./components/CurrencyInput.tsx";
 import { CustomRateInput } from "./components/CustomRateInput.tsx";
 import { ExchangeRateFooter } from "./components/ExchangeRateFooter.tsx";
 import { ExchangeRateHeader } from "./components/ExchangeRateHeader.tsx";
+import { Navbar } from "./components/Navbar.tsx";
+import { SettingsDialog } from "./components/SettingsDialog.tsx";
 import { Card, CardContent } from "./components/ui/card.tsx";
 import { trpc } from "./trpc/client.ts";
 import { formatAmount, parseAmount } from "./utils/formatters.ts";
 
 function App() {
+  const { user } = useAuth();
+
   // Use tRPC to fetch the latest exchange rates with React Query
   const {
     data: latestRates,
@@ -57,6 +63,17 @@ function App() {
   const [eur, setEur] = useState("");
   const [customRate, setCustomRate] = useState("");
   const [customAmount, setCustomAmount] = useState("");
+  const [customUnitLabel, setCustomUnitLabel] = useState("★");
+
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setCustomUnitLabel("★");
+    }
+  }, [user]);
 
   const statusLine = useMemo(() => {
     if (loading) return "Cargando tasas…";
@@ -184,6 +201,14 @@ function App() {
       <BackgroundDecoration />
 
       <div className="relative z-10 w-full max-w-md animate-in fade-in zoom-in-95 duration-500">
+        <Navbar
+          onOpenSettings={() => setSettingsOpen(true)}
+          onOpenAuth={(mode) => {
+            setAuthMode(mode);
+            setAuthDialogOpen(true);
+          }}
+        />
+
         <Card className="border-zinc-800/50 bg-zinc-900/40 backdrop-blur-xl shadow-2xl overflow-hidden ring-1 ring-white/5">
           {/* Decorative Top Line */}
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-80" />
@@ -264,6 +289,7 @@ function App() {
               onRateChange={onCustomRateChange}
               onAmountChange={onCustomAmountChange}
               disabled={disabled}
+              unitLabel={customUnitLabel}
             />
           </CardContent>
         </Card>
@@ -271,6 +297,23 @@ function App() {
         <ExchangeRateFooter fetchedAt={rates?.fetchedAt} />
       </div>
       <Toaster position="top-center" theme="dark" />
+
+      <AuthDialog
+        open={authDialogOpen}
+        mode={authMode}
+        onClose={() => setAuthDialogOpen(false)}
+        onModeChange={(m) => setAuthMode(m)}
+      />
+
+      <SettingsDialog
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        onUseCustomRate={(label, rate) => {
+          setCustomUnitLabel(label);
+          onCustomRateChange(rate);
+          setSettingsOpen(false);
+        }}
+      />
     </div>
   );
 }

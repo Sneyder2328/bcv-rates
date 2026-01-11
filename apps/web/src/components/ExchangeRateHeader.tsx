@@ -14,7 +14,7 @@ export function ExchangeRateHeader({
       <div className="flex items-center justify-between">
         <div>
           <CardTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-br from-white to-zinc-400 bg-clip-text text-transparent">
-            Convertidor (tasas del BCV)
+            El Cambio - Convertidor de bolívares
           </CardTitle>
           <p className="mt-1 text-sm font-medium text-zinc-400/80">
             {loading ? (

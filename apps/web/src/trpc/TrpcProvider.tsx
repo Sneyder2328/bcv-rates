@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import { type ReactNode, useState } from "react";
+import { auth } from "../auth/firebase.ts";
 import { trpc } from "./client.ts";
 
 interface TrpcProviderProps {
@@ -33,6 +34,10 @@ export function TrpcProvider({ children }: TrpcProviderProps) {
       links: [
         httpBatchLink({
           url: `${import.meta.env.VITE_API_BASE_URL}/api/trpc`,
+          headers: async () => {
+            const token = await auth.currentUser?.getIdToken();
+            return token ? { authorization: `Bearer ${token}` } : {};
+          },
         }),
       ],
     }),

@@ -39,3 +39,15 @@ model HistoricalExchangeRate {
   @@unique([currency, date])
   @@index([currency, date])
 }
+
+model UserCustomRate {
+  id        String   @id @default(uuid(7))
+  userId    String
+  label     String
+  rate      Decimal  @db.Decimal(20, 10)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, label])
+  @@index([userId])
+}

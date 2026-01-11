@@ -10,6 +10,7 @@ type CustomRateInputProps = {
   amountValue: string;
   onRateChange: (value: string) => void;
   onAmountChange: (value: string) => void;
+  unitLabel?: string;
   disabled?: boolean;
 };
 
@@ -18,6 +19,7 @@ export function CustomRateInput({
   amountValue,
   onRateChange,
   onAmountChange,
+  unitLabel = "★",
   disabled = false,
 }: CustomRateInputProps) {
   const [rateCopied, setRateCopied] = useState(false);
@@ -53,7 +55,9 @@ export function CustomRateInput({
             htmlFor="custom-rate"
             className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"
           >
-            Tasa Personalizada (1 = X Bs)
+            {unitLabel !== "★"
+              ? `Tasa ${unitLabel} (1 ${unitLabel} = X Bs)`
+              : "Tasa Personalizada (1 = X Bs)"}
           </Label>
           <button
             onClick={() => handleCopy(rateValue, "Bs.", setRateCopied)}
@@ -92,7 +96,9 @@ export function CustomRateInput({
             htmlFor="custom-amount"
             className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"
           >
-            Cantidad Personalizada
+            {unitLabel !== "★"
+              ? `Cantidad (${unitLabel})`
+              : "Cantidad Personalizada"}
           </Label>
           <button
             onClick={() => handleCopy(amountValue, "", setAmountCopied)}
@@ -119,12 +125,14 @@ export function CustomRateInput({
             className="h-12 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 rounded-xl transition-all"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 group-focus-within:text-violet-400 transition-colors">
-            ★
+            {unitLabel}
           </div>
         </div>
         {formattedRate && (
           <p className="text-[14px] font-medium text-zinc-400 text-right px-1">
-            1 = {formattedRate} Bs
+            {unitLabel !== "★"
+              ? `1 ${unitLabel} = ${formattedRate} Bs`
+              : `1 = ${formattedRate} Bs`}
           </p>
         )}
       </div>

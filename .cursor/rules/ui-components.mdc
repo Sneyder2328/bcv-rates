@@ -1,0 +1,25 @@
+---
+description: For adding new components in apps/web
+alwaysApply: false
+---
+## UI Components
+- Always use shadcn/ui components for any UI elements
+- Import components from `src/components/ui/` (e.g., `import { Button } from "@/components/ui/button"`)
+- Use the `cn` utility from `src/lib/utils.ts` for combining Tailwind classes
+- Follow shadcn component patterns: forwardRef, displayName, proper TypeScript types
+- Prefer existing shadcn components over custom implementations
+
+## Styling
+- Use Tailwind CSS for all styling
+- Follow the established design system and color scheme
+- Use responsive design patterns consistently
+
+## Project Structure
+- Keep components organized in `src/components/`
+- Use the established folder structure for new features
+- Follow TypeScript best practices throughout
+
+## Code Quality
+- Use proper TypeScript types
+- Follow React best practices
+- Maintain consistent code formatting (biome.json)
