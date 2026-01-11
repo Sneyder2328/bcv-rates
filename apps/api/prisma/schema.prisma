@@ -19,7 +19,7 @@ enum CurrencyCode {
 }
 
 model ExchangeRate {
-  id        String       @id @default(cuid())
+  id        String       @id @default(uuid(7))
   currency  CurrencyCode
   rate      Decimal      @db.Decimal(20, 10)
   validAt   DateTime
@@ -30,7 +30,7 @@ model ExchangeRate {
 }
 
 model HistoricalExchangeRate {
-  id        String       @id @default(cuid())
+  id        String       @id @default(uuid(7))
   currency  CurrencyCode
   rate      Decimal      @db.Decimal(20, 10)
   date      DateTime     @db.Date
