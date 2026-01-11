@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { AlertTriangle } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Toaster } from "sonner";
 import { useAuth } from "./auth/AuthProvider.tsx";
 import { AuthDialog } from "./components/AuthDialog.tsx";
@@ -11,17 +12,29 @@ import { Navbar } from "./components/Navbar.tsx";
 import { SettingsDialog } from "./components/SettingsDialog.tsx";
 import { Card, CardContent } from "./components/ui/card.tsx";
 import { trpc } from "./trpc/client.ts";
+import {
+  readCachedCustomRatesList,
+  writeCachedCustomRatesList,
+} from "./utils/customRatesCache.ts";
 import { formatAmount, formatRate, parseAmount } from "./utils/formatters.ts";
+import { useOnlineStatus } from "./utils/network.ts";
 
 function App() {
   const { user } = useAuth();
 
-  // Use tRPC to fetch the latest exchange rates with React Query
+  const isOnline = useOnlineStatus();
+
+  // Use tRPC to fetch the latest exchange rates with React Query (persisted for offline usage)
+  const latestRatesQuery = trpc.exchangeRates.getLatest.useQuery(undefined, {
+    meta: { persist: true },
+  });
+
   const {
     data: latestRates,
-    isLoading: loading,
     error: queryError,
-  } = trpc.exchangeRates.getLatest.useQuery();
+    isFetching,
+    isLoading,
+  } = latestRatesQuery;
 
   // Derive rates from the tRPC response
   const rates = useMemo(() => {
@@ -69,9 +82,36 @@ function App() {
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  const utils = trpc.useUtils();
+
+  const prevUserUidRef = useRef<string | null>(null);
+  useEffect(() => {
+    const nextUid = user?.uid ?? null;
+    if (prevUserUidRef.current !== nextUid) {
+      utils.customRates.list.reset();
+      prevUserUidRef.current = nextUid;
+    }
+  }, [user?.uid, utils]);
+
   const customRatesQuery = trpc.customRates.list.useQuery(undefined, {
-    enabled: !!user,
+    enabled: !!user && isOnline,
   });
+
+  useEffect(() => {
+    const uid = user?.uid;
+    if (!uid) return;
+    if (!customRatesQuery.data) return;
+    writeCachedCustomRatesList(uid, customRatesQuery.data);
+  }, [customRatesQuery.data, user?.uid]);
+
+  useEffect(() => {
+    const uid = user?.uid;
+    if (!uid) return;
+    if (customRatesQuery.data) return;
+    const cached = readCachedCustomRatesList(uid);
+    if (!cached) return;
+    utils.customRates.list.setData(undefined, cached);
+  }, [customRatesQuery.data, user?.uid, utils]);
 
   useEffect(() => {
     if (!user) {
@@ -79,10 +119,17 @@ function App() {
     }
   }, [user]);
 
+  const syncingRates = isOnline && isFetching;
+
   const statusLine = useMemo(() => {
-    if (loading) return "Cargando tasas…";
-    if (error) return error;
-    if (!rates) return "No hay tasas disponibles todavía.";
+    if (!rates) {
+      if (!isOnline) {
+        return "Sin conexión. Abre la app una vez con internet para guardar las tasas.";
+      }
+      if (isLoading || syncingRates) return "Cargando tasas…";
+      if (error) return error;
+      return "No hay tasas disponibles todavía.";
+    }
 
     const date = new Date(rates.validAt);
     const dateText = Number.isNaN(date.getTime())
@@ -94,7 +141,36 @@ function App() {
         });
 
     return `Fecha Valor: ${dateText}`;
-  }, [error, loading, rates]);
+  }, [error, isLoading, isOnline, rates, syncingRates]);
+
+  const fetchedAtText = useMemo(() => {
+    if (!rates?.fetchedAt) return null;
+    const date = new Date(rates.fetchedAt);
+    if (Number.isNaN(date.getTime())) return rates.fetchedAt;
+    return date.toLocaleString("es-VE", {
+      dateStyle: "short",
+      timeStyle: "short",
+    });
+  }, [rates?.fetchedAt]);
+
+  const showStaleRatesBanner = useMemo(() => {
+    if (!rates) return false;
+    const fetchedAtMs = Date.parse(rates.fetchedAt);
+    if (!Number.isFinite(fetchedAtMs)) return false;
+    const ageMs = Date.now() - fetchedAtMs;
+    const twelveHoursMs = 12 * 60 * 60 * 1000;
+    return ageMs > twelveHoursMs;
+  }, [rates]);
+
+  const staleRatesBannerDescription = useMemo(() => {
+    if (syncingRates) {
+      return "Usando tasas guardadas mientras se intenta actualizar…";
+    }
+    if (!isOnline) return "Sin conexión: usando tasas guardadas.";
+    if (queryError)
+      return "No se pudo actualizar la tasa; usando valor guardado.";
+    return "Han pasado más de 12 horas desde la última actualización.";
+  }, [isOnline, queryError, syncingRates]);
 
   function onBolivarsChange(next: string) {
     setBolivars(next);
@@ -198,13 +274,28 @@ function App() {
     setEur(formatAmount(ves / rates.eur));
   }
 
-  const disabled = loading || !rates;
+  const disabled = !rates;
 
   return (
     <div className="relative min-h-screen w-full bg-[#09090b] text-zinc-100 flex items-center justify-center p-1 sm:p-4 font-sans overflow-hidden selection:bg-indigo-500/30">
       <BackgroundDecoration />
 
       <div className="relative z-10 w-full max-w-md animate-in fade-in zoom-in-95 duration-500">
+        {showStaleRatesBanner && (
+          <div className="mb-3 flex items-start gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100 ring-1 ring-amber-400/10">
+            <AlertTriangle
+              size={16}
+              className="mt-0.5 shrink-0 text-amber-300"
+              aria-hidden="true"
+            />
+            <p className="min-w-0">
+              <span className="font-semibold">Tasa desactualizada.</span>{" "}
+              {staleRatesBannerDescription}{" "}
+              {fetchedAtText ? `Última actualización: ${fetchedAtText}.` : null}
+            </p>
+          </div>
+        )}
+
         <Navbar
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenAuth={(mode) => {
@@ -217,7 +308,7 @@ function App() {
           {/* Decorative Top Line */}
           <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-80" />
 
-          <ExchangeRateHeader loading={loading} statusLine={statusLine} />
+          <ExchangeRateHeader syncing={syncingRates} statusLine={statusLine} />
 
           <CardContent className="space-y-3 pt-3 sm:space-y-6 sm:pt-6">
             {/* VES Input */}

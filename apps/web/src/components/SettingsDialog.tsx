@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "../auth/AuthProvider.tsx";
 import { trpc } from "../trpc/client.ts";
+import { writeCachedCustomRatesList } from "../utils/customRatesCache.ts";
 import { formatRate } from "../utils/formatters.ts";
+import { useOnlineStatus } from "../utils/network.ts";
 import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
 
@@ -14,11 +16,19 @@ type SettingsDialogProps = {
 
 export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const { user } = useAuth();
+  const isOnline = useOnlineStatus();
   const utils = trpc.useUtils();
 
   const listQuery = trpc.customRates.list.useQuery(undefined, {
-    enabled: open && !!user,
+    enabled: open && !!user && isOnline,
   });
+
+  useEffect(() => {
+    const uid = user?.uid;
+    if (!uid) return;
+    if (!listQuery.data) return;
+    writeCachedCustomRatesList(uid, listQuery.data);
+  }, [listQuery.data, user?.uid]);
 
   const createMutation = trpc.customRates.create.useMutation({
     onSuccess: async () => {
@@ -62,6 +72,10 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
       toast.error("Debes iniciar sesión para guardar tasas");
       return;
     }
+    if (!isOnline) {
+      toast.error("Sin conexión: modo solo lectura");
+      return;
+    }
 
     try {
       await createMutation.mutateAsync({ label, rate });
@@ -75,6 +89,10 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   }
 
   async function handleDelete(id: string) {
+    if (!isOnline) {
+      toast.error("Sin conexión: modo solo lectura");
+      return;
+    }
     try {
       await deleteMutation.mutateAsync({ id });
       toast.success("Tasa eliminada");
@@ -85,6 +103,10 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   }
 
   async function handleUpdate(id: string) {
+    if (!isOnline) {
+      toast.error("Sin conexión: modo solo lectura");
+      return;
+    }
     try {
       await updateMutation.mutateAsync({ id, rate: editingRate });
       toast.success("Tasa actualizada");
@@ -132,6 +154,13 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             </div>
           ) : (
             <>
+              {!isOnline && (
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-100 ring-1 ring-amber-400/10">
+                  Sin conexión: modo solo lectura. Puedes ver tus tasas
+                  guardadas, pero no puedes crear, editar o eliminar.
+                </div>
+              )}
+
               <form
                 onSubmit={(e) => void handleCreate(e)}
                 className="space-y-3"
@@ -149,7 +178,9 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                       value={label}
                       onChange={(e) => setLabel(e.target.value)}
                       placeholder="USDT"
-                      disabled={createMutation.isPending || atLimit}
+                      disabled={
+                        createMutation.isPending || atLimit || !isOnline
+                      }
                       className="h-11 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
                     />
                   </div>
@@ -167,7 +198,9 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                       value={rate}
                       onChange={(e) => setRate(e.target.value)}
                       placeholder="0,00"
-                      disabled={createMutation.isPending || atLimit}
+                      disabled={
+                        createMutation.isPending || atLimit || !isOnline
+                      }
                       className="h-11 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
                     />
                   </div>
@@ -179,11 +212,16 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                     createMutation.isPending ||
                     !label.trim() ||
                     !rate.trim() ||
-                    atLimit
+                    atLimit ||
+                    !isOnline
                   }
                   className="w-full rounded-xl bg-indigo-600/80 border border-indigo-500/60 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-600 hover:border-indigo-400 transition-colors disabled:opacity-50"
                 >
-                  {atLimit ? "Límite alcanzado" : "Guardar tasa"}
+                  {!isOnline
+                    ? "Modo solo lectura"
+                    : atLimit
+                      ? "Límite alcanzado"
+                      : "Guardar tasa"}
                 </button>
               </form>
 
@@ -222,7 +260,9 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                                     setEditingRate(e.target.value)
                                   }
                                   placeholder="0,00"
-                                  disabled={updateMutation.isPending}
+                                  disabled={
+                                    updateMutation.isPending || !isOnline
+                                  }
                                   className="h-10 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
                                 />
                               </div>
@@ -241,7 +281,8 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                                   onClick={() => void handleUpdate(r.id)}
                                   disabled={
                                     updateMutation.isPending ||
-                                    !editingRate.trim()
+                                    !editingRate.trim() ||
+                                    !isOnline
                                   }
                                   className="inline-flex items-center justify-center rounded-xl bg-zinc-950/50 border border-zinc-800/80 px-2.5 py-2 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors disabled:opacity-50"
                                   title="Guardar"
@@ -270,7 +311,8 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                                 }}
                                 disabled={
                                   deleteMutation.isPending ||
-                                  updateMutation.isPending
+                                  updateMutation.isPending ||
+                                  !isOnline
                                 }
                                 className="inline-flex items-center justify-center rounded-xl bg-zinc-950/50 border border-zinc-800/80 px-2.5 py-2 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors disabled:opacity-50"
                                 title="Editar"
@@ -283,7 +325,8 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                               onClick={() => void handleDelete(r.id)}
                               disabled={
                                 deleteMutation.isPending ||
-                                updateMutation.isPending
+                                updateMutation.isPending ||
+                                !isOnline
                               }
                               className="inline-flex items-center justify-center rounded-xl bg-zinc-950/50 border border-zinc-800/80 px-2.5 py-2 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors disabled:opacity-50"
                               title="Eliminar"

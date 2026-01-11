@@ -1,12 +1,13 @@
+import { Loader2 } from "lucide-react";
 import { CardHeader, CardTitle } from "./ui/card.tsx";
 
 type ExchangeRateHeaderProps = {
-  loading: boolean;
+  syncing: boolean;
   statusLine: string;
 };
 
 export function ExchangeRateHeader({
-  loading,
+  syncing,
   statusLine,
 }: ExchangeRateHeaderProps) {
   return (
@@ -17,8 +18,15 @@ export function ExchangeRateHeader({
             El Cambio - Convertidor de bolívares
           </CardTitle>
           <p className="mt-1 text-sm font-medium text-zinc-400/80">
-            {loading ? (
-              <span className="animate-pulse">Sincronizando tasas...</span>
+            {syncing ? (
+              <span className="inline-flex items-center gap-2">
+                <Loader2
+                  size={16}
+                  className="animate-spin"
+                  aria-hidden="true"
+                />
+                {statusLine}
+              </span>
             ) : (
               statusLine
             )}
