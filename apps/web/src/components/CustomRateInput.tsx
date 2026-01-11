@@ -1,128 +1,133 @@
-import { useState } from "react";
 import { Check, Copy } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { formatAmount, parseAmount } from "../utils/formatters.ts";
 import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
-import { formatAmount, parseAmount } from "../utils/formatters.ts";
 
 type CustomRateInputProps = {
-    rateValue: string;
-    amountValue: string;
-    onRateChange: (value: string) => void;
-    onAmountChange: (value: string) => void;
-    disabled?: boolean;
+  rateValue: string;
+  amountValue: string;
+  onRateChange: (value: string) => void;
+  onAmountChange: (value: string) => void;
+  disabled?: boolean;
 };
 
 export function CustomRateInput({
-    rateValue,
-    amountValue,
-    onRateChange,
-    onAmountChange,
-    disabled = false,
+  rateValue,
+  amountValue,
+  onRateChange,
+  onAmountChange,
+  disabled = false,
 }: CustomRateInputProps) {
-    const [rateCopied, setRateCopied] = useState(false);
-    const [amountCopied, setAmountCopied] = useState(false);
+  const [rateCopied, setRateCopied] = useState(false);
+  const [amountCopied, setAmountCopied] = useState(false);
 
-    const parsedRate = parseAmount(rateValue);
-    const formattedRate = parsedRate !== null && parsedRate > 0 ? formatAmount(parsedRate) : null;
+  const parsedRate = parseAmount(rateValue);
+  const formattedRate =
+    parsedRate !== null && parsedRate > 0 ? formatAmount(parsedRate) : null;
 
-    const handleCopy = async (text: string, suffix: string, setCopied: (val: boolean) => void) => {
-        if (!text) return;
-        try {
-            await navigator.clipboard.writeText(text);
-            setCopied(true);
-            toast.success(`${text} ${suffix} copiado al portapapeles`);
-            setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
-            console.error("Failed to copy:", err);
-            toast.error("Error al copiar");
-        }
-    };
+  const handleCopy = async (
+    text: string,
+    suffix: string,
+    setCopied: (val: boolean) => void,
+  ) => {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success(`${text} ${suffix} copiado al portapapeles`);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+      toast.error("Error al copiar");
+    }
+  };
 
-    return (
-        <div className="space-y-3 sm:space-y-4">
-            {/* Rate Input */}
-            <div className="space-y-1 sm:space-y-2">
-                <div className="flex items-center justify-between">
-                    <Label
-                        htmlFor="custom-rate"
-                        className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"
-                    >
-                        Tasa Personalizada (1 = X Bs)
-                    </Label>
-                    <button
-                        onClick={() => handleCopy(rateValue, "Bs.", setRateCopied)}
-                        disabled={!rateValue}
-                        className="text-zinc-500 hover:text-zinc-300 disabled:opacity-30 disabled:hover:text-zinc-500 transition-colors p-1 -mr-1"
-                        title="Copiar tasa"
-                        type="button"
-                    >
-                        {rateCopied ? (
-                            <Check size={14} className="text-emerald-500" />
-                        ) : (
-                            <Copy size={14} />
-                        )}
-                    </button>
-                </div>
-                <div className="relative group">
-                    <Input
-                        id="custom-rate"
-                        inputMode="decimal"
-                        placeholder="0,00"
-                        value={rateValue}
-                        onChange={(e) => onRateChange(e.target.value)}
-                        disabled={disabled}
-                        className="h-12 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 rounded-xl transition-all"
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 group-focus-within:text-violet-400 transition-colors">
-                        Bs.
-                    </div>
-                </div>
-            </div>
-
-            {/* Amount Input */}
-            <div className="space-y-1 sm:space-y-2">
-                <div className="flex items-center justify-between">
-                    <Label
-                        htmlFor="custom-amount"
-                        className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"
-                    >
-                        Cantidad Personalizada
-                    </Label>
-                    <button
-                        onClick={() => handleCopy(amountValue, "", setAmountCopied)}
-                        disabled={!amountValue}
-                        className="text-zinc-500 hover:text-zinc-300 disabled:opacity-30 disabled:hover:text-zinc-500 transition-colors p-1 -mr-1"
-                        title="Copiar cantidad"
-                        type="button"
-                    >
-                        {amountCopied ? (
-                            <Check size={14} className="text-emerald-500" />
-                        ) : (
-                            <Copy size={14} />
-                        )}
-                    </button>
-                </div>
-                <div className="relative group">
-                    <Input
-                        id="custom-amount"
-                        inputMode="decimal"
-                        placeholder="0,00"
-                        value={amountValue}
-                        onChange={(e) => onAmountChange(e.target.value)}
-                        disabled={disabled}
-                        className="h-12 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 rounded-xl transition-all"
-                    />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 group-focus-within:text-violet-400 transition-colors">
-                        ★
-                    </div>
-                </div>
-                {formattedRate && (
-                    <p className="text-[14px] font-medium text-zinc-400 text-right px-1">
-                        1 = {formattedRate} Bs
-                    </p>
-                )}
-            </div>
+  return (
+    <div className="space-y-3 sm:space-y-4">
+      {/* Rate Input */}
+      <div className="space-y-1 sm:space-y-2">
+        <div className="flex items-center justify-between">
+          <Label
+            htmlFor="custom-rate"
+            className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"
+          >
+            Tasa Personalizada (1 = X Bs)
+          </Label>
+          <button
+            onClick={() => handleCopy(rateValue, "Bs.", setRateCopied)}
+            disabled={!rateValue}
+            className="text-zinc-500 hover:text-zinc-300 disabled:opacity-30 disabled:hover:text-zinc-500 transition-colors p-1 -mr-1"
+            title="Copiar tasa"
+            type="button"
+          >
+            {rateCopied ? (
+              <Check size={14} className="text-emerald-500" />
+            ) : (
+              <Copy size={14} />
+            )}
+          </button>
         </div>
-    );
+        <div className="relative group">
+          <Input
+            id="custom-rate"
+            inputMode="decimal"
+            placeholder="0,00"
+            value={rateValue}
+            onChange={(e) => onRateChange(e.target.value)}
+            disabled={disabled}
+            className="h-12 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 rounded-xl transition-all"
+          />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 group-focus-within:text-violet-400 transition-colors">
+            Bs.
+          </div>
+        </div>
+      </div>
+
+      {/* Amount Input */}
+      <div className="space-y-1 sm:space-y-2">
+        <div className="flex items-center justify-between">
+          <Label
+            htmlFor="custom-amount"
+            className="text-xs uppercase tracking-wider font-semibold text-zinc-300 ml-1"
+          >
+            Cantidad Personalizada
+          </Label>
+          <button
+            onClick={() => handleCopy(amountValue, "", setAmountCopied)}
+            disabled={!amountValue}
+            className="text-zinc-500 hover:text-zinc-300 disabled:opacity-30 disabled:hover:text-zinc-500 transition-colors p-1 -mr-1"
+            title="Copiar cantidad"
+            type="button"
+          >
+            {amountCopied ? (
+              <Check size={14} className="text-emerald-500" />
+            ) : (
+              <Copy size={14} />
+            )}
+          </button>
+        </div>
+        <div className="relative group">
+          <Input
+            id="custom-amount"
+            inputMode="decimal"
+            placeholder="0,00"
+            value={amountValue}
+            onChange={(e) => onAmountChange(e.target.value)}
+            disabled={disabled}
+            className="h-12 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 rounded-xl transition-all"
+          />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 group-focus-within:text-violet-400 transition-colors">
+            ★
+          </div>
+        </div>
+        {formattedRate && (
+          <p className="text-[14px] font-medium text-zinc-400 text-right px-1">
+            1 = {formattedRate} Bs
+          </p>
+        )}
+      </div>
+    </div>
+  );
 }

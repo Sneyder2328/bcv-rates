@@ -19,7 +19,7 @@ type LatestRate = {
 export class ExchangeRatesService implements OnModuleInit {
   private readonly logger = new Logger(ExchangeRatesService.name);
 
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   onModuleInit() {
     // Don’t block API startup on a remote fetch; just log if this fails.
@@ -54,17 +54,17 @@ export class ExchangeRatesService implements OnModuleInit {
     return {
       USD: usd
         ? {
-          rate: usd.rate,
-          validAt: usd.validAt,
-          fetchedAt: usd.fetchedAt,
-        }
+            rate: usd.rate,
+            validAt: usd.validAt,
+            fetchedAt: usd.fetchedAt,
+          }
         : null,
       EUR: eur
         ? {
-          rate: eur.rate,
-          validAt: eur.validAt,
-          fetchedAt: eur.fetchedAt,
-        }
+            rate: eur.rate,
+            validAt: eur.validAt,
+            fetchedAt: eur.fetchedAt,
+          }
         : null,
     };
   }
@@ -87,12 +87,22 @@ export class ExchangeRatesService implements OnModuleInit {
       // Historical Records
       this.prisma.historicalExchangeRate.upsert({
         where: { currency_date: { currency: CurrencyCode.USD, date: validAt } },
-        create: { currency: CurrencyCode.USD, date: validAt, rate: usd, fetchedAt },
+        create: {
+          currency: CurrencyCode.USD,
+          date: validAt,
+          rate: usd,
+          fetchedAt,
+        },
         update: { rate: usd, fetchedAt },
       }),
       this.prisma.historicalExchangeRate.upsert({
         where: { currency_date: { currency: CurrencyCode.EUR, date: validAt } },
-        create: { currency: CurrencyCode.EUR, date: validAt, rate: eur, fetchedAt },
+        create: {
+          currency: CurrencyCode.EUR,
+          date: validAt,
+          rate: eur,
+          fetchedAt,
+        },
         update: { rate: eur, fetchedAt },
       }),
     ]);

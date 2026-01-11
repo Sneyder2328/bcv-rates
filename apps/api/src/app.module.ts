@@ -14,4 +14,4 @@ import { TrpcModule } from "./trpc/trpc.module.js";
     TrpcModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}

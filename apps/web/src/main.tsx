@@ -16,4 +16,3 @@ createRoot(rootEl).render(
     </TrpcProvider>
   </StrictMode>,
 );
-

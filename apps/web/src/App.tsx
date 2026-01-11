@@ -1,16 +1,13 @@
 import { useMemo, useState } from "react";
 import { Toaster } from "sonner";
-import { Card, CardContent } from "./components/ui/card.tsx";
 import { BackgroundDecoration } from "./components/BackgroundDecoration.tsx";
 import { CurrencyInput } from "./components/CurrencyInput.tsx";
 import { CustomRateInput } from "./components/CustomRateInput.tsx";
 import { ExchangeRateFooter } from "./components/ExchangeRateFooter.tsx";
 import { ExchangeRateHeader } from "./components/ExchangeRateHeader.tsx";
-import {
-  formatAmount,
-  parseAmount,
-} from "./utils/formatters.ts";
+import { Card, CardContent } from "./components/ui/card.tsx";
 import { trpc } from "./trpc/client.ts";
+import { formatAmount, parseAmount } from "./utils/formatters.ts";
 
 function App() {
   // Use tRPC to fetch the latest exchange rates with React Query
@@ -70,10 +67,10 @@ function App() {
     const dateText = Number.isNaN(date.getTime())
       ? rates.validAt
       : date.toLocaleDateString("es-VE", {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-      });
+          year: "numeric",
+          month: "short",
+          day: "2-digit",
+        });
 
     return `Fecha Valor: ${dateText}`;
   }, [error, loading, rates]);

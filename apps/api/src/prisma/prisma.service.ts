@@ -49,7 +49,7 @@ export class PrismaService
    *
    * @param configService - NestJS ConfigService for reading environment variables
    */
-  constructor(readonly configService: ConfigService) {
+  constructor(configService: ConfigService) {
     const nodeEnv = configService.get<string>("NODE_ENV") || "development";
 
     const adapter = new PrismaPg({
