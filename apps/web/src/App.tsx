@@ -143,6 +143,7 @@ function App() {
     return `Fecha Valor: ${dateText}`;
   }, [error, isLoading, isOnline, rates, syncingRates]);
 
+  /*
   const fetchedAtText = useMemo(() => {
     if (!rates?.fetchedAt) return null;
     const date = new Date(rates.fetchedAt);
@@ -152,6 +153,7 @@ function App() {
       timeStyle: "short",
     });
   }, [rates?.fetchedAt]);
+  */
 
   const showStaleRatesBanner = useMemo(() => {
     if (!rates) return false;
@@ -162,6 +164,7 @@ function App() {
     return ageMs > twelveHoursMs;
   }, [rates]);
 
+  /*
   const staleRatesBannerDescription = useMemo(() => {
     if (syncingRates) {
       return "Usando tasas guardadas mientras se intenta actualizar…";
@@ -171,6 +174,7 @@ function App() {
       return "No se pudo actualizar la tasa; usando valor guardado.";
     return "Han pasado más de 12 horas desde la última actualización.";
   }, [isOnline, queryError, syncingRates]);
+  */
 
   function onBolivarsChange(next: string) {
     setBolivars(next);
@@ -288,11 +292,13 @@ function App() {
               className="mt-0.5 shrink-0 text-amber-300"
               aria-hidden="true"
             />
-            <p className="min-w-0">
+            {/**
+             * <p className="min-w-0">
               <span className="font-semibold">Tasa desactualizada.</span>{" "}
               {staleRatesBannerDescription}{" "}
               {fetchedAtText ? `Última actualización: ${fetchedAtText}.` : null}
             </p>
+             */}
           </div>
         )}
 
