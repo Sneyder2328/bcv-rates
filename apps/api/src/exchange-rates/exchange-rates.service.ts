@@ -70,6 +70,9 @@ export class ExchangeRatesService implements OnModuleInit {
   }
 
   private async refreshFromBcv(trigger: "startup" | "cron") {
+    this.logger.log(
+      `Refreshing BCV rates (${trigger}) at ${new Date().toISOString()}`,
+    );
     const { validAt, usd, eur } = await this.scrapeBcvHomepage();
     const fetchedAt = new Date();
 
@@ -117,11 +120,16 @@ export class ExchangeRatesService implements OnModuleInit {
     usd: Prisma.Decimal;
     eur: Prisma.Decimal;
   }> {
+    this.logger.log(`Scraping BCV homepage at ${new Date().toISOString()}`);
     const html = await this.fetchBcvHomepageHtml();
 
     const validAt = this.extractValidAtFromHtml(html);
     const usd = new Prisma.Decimal(this.extractRateFromHtml(html, "dolar"));
     const eur = new Prisma.Decimal(this.extractRateFromHtml(html, "euro"));
+    
+    this.logger.log(
+      `Scraped BCV homepage: validAt=${validAt.toISOString().slice(0, 10)} USD=${usd.toString()} EUR=${eur.toString()}`,
+    );
 
     return { validAt, usd, eur };
   }

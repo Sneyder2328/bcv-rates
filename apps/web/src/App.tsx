@@ -286,7 +286,7 @@ function App() {
       <BackgroundDecoration />
 
       <div className="relative z-10 w-full max-w-md animate-in fade-in zoom-in-95 duration-500">
-      {/**
+        {/**
         {showStaleRatesBanner && (
           <div className="mb-3 flex items-start gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100 ring-1 ring-amber-400/10">
             <AlertTriangle
