@@ -1,8 +1,6 @@
-import * as https from "node:https";
-import { URL } from "node:url";
-import { createBrotliDecompress, createGunzip, createInflate } from "node:zlib";
 import { Injectable, Logger, type OnModuleInit } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
+import { Agent } from "undici";
 import { CurrencyCode, Prisma } from "../../generated/prisma/client";
 // biome-ignore lint/style/useImportType: PrismaService must be a runtime import so NestJS can emit DI metadata for constructor injection.
 import { PrismaService } from "../prisma/prisma.service.js";
@@ -18,8 +16,25 @@ type LatestRate = {
 @Injectable()
 export class ExchangeRatesService implements OnModuleInit {
   private readonly logger = new Logger(ExchangeRatesService.name);
+  private readonly BCV_TIMEOUT_MS = 90_000;
 
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Helper to determine if we allow insecure TLS based on env vars.
+   * Default to TRUE given the target site's known history, but allow override.
+   */
+  private get allowInsecureTls(): boolean {
+    return process.env.BCV_ALLOW_INSECURE_TLS !== "false";
+  }
+
+  private get bcvHeaders(): Record<string, string> {
+    return {
+      accept: "text/html,application/xhtml+xml",
+      "accept-language": "es-VE,es;q=0.9,en;q=0.8",
+      "user-agent": "bcv-rates/1.0 (+https://github.com/)",
+    };
+  }
 
   onModuleInit() {
     // Don’t block API startup on a remote fetch; just log if this fails.
@@ -31,7 +46,8 @@ export class ExchangeRatesService implements OnModuleInit {
     });
   }
 
-  @Cron("5 16,19 * * *", { timeZone: "America/Caracas" })
+  @Cron("30 17 * * *", { timeZone: "America/Caracas" })
+  @Cron("0 19 * * *", { timeZone: "America/Caracas" })
   async refreshFromBcvCron() {
     await this.refreshFromBcv("cron");
   }
@@ -126,7 +142,7 @@ export class ExchangeRatesService implements OnModuleInit {
     const validAt = this.extractValidAtFromHtml(html);
     const usd = new Prisma.Decimal(this.extractRateFromHtml(html, "dolar"));
     const eur = new Prisma.Decimal(this.extractRateFromHtml(html, "euro"));
-    
+
     this.logger.log(
       `Scraped BCV homepage: validAt=${validAt.toISOString().slice(0, 10)} USD=${usd.toString()} EUR=${eur.toString()}`,
     );
@@ -135,14 +151,16 @@ export class ExchangeRatesService implements OnModuleInit {
   }
 
   private async fetchBcvHomepageHtml(): Promise<string> {
-    const headers: Record<string, string> = {
-      accept: "text/html,application/xhtml+xml",
-      "accept-language": "es-VE,es;q=0.9,en;q=0.8",
-      "user-agent": "bcv-rates/1.0 (+https://github.com/)",
-    };
+    // 1. Setup AbortController for the initial request timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.BCV_TIMEOUT_MS);
 
     try {
-      const res = await fetch(BCV_HOMEPAGE_URL, { headers });
+      const res = await fetch(BCV_HOMEPAGE_URL, {
+        headers: this.bcvHeaders,
+        signal: controller.signal,
+      });
+
       if (!res.ok) {
         throw new Error(`BCV request failed: ${res.status} ${res.statusText}`);
       }
@@ -150,122 +168,61 @@ export class ExchangeRatesService implements OnModuleInit {
     } catch (err) {
       const code = this.errorToCode(err);
 
-      // Node's built-in fetch fails here with `UNABLE_TO_VERIFY_LEAF_SIGNATURE` because
-      // BCV's TLS chain isn't always verifiable by Node's default CA set.
-      // We fall back to an "insecure" HTTPS request (rejectUnauthorized=false) unless disabled.
+      // Check if it is a TLS error
       if (this.isTlsVerificationErrorCode(code)) {
-        const allowInsecure = process.env.BCV_ALLOW_INSECURE_TLS !== "false";
-        if (!allowInsecure) {
+        if (!this.allowInsecureTls) {
           throw new Error(
             `BCV TLS verification failed (${code}). Set BCV_ALLOW_INSECURE_TLS=true to allow insecure fallback.`,
           );
         }
 
         this.logger.warn(
-          `BCV TLS verification failed (${code}); retrying with insecure TLS (BCV_ALLOW_INSECURE_TLS=false to disable).`,
+          `BCV TLS verification failed (${code}); retrying with insecure TLS.`,
         );
 
-        return await this.httpsGetText(BCV_HOMEPAGE_URL, {
-          headers,
-          rejectUnauthorized: false,
-          maxRedirects: 5,
-          timeoutMs: 15_000,
+        // 2. Use a custom Dispatcher to ignore SSL errors explicitly for this request
+        // This replaces the need for "httpsGetText"
+        const insecureAgent = new Agent({
+          connect: {
+            rejectUnauthorized: false, // The "insecure" magic
+            timeout: this.BCV_TIMEOUT_MS,
+          },
         });
+
+        return await this.fetchInsecureFallback(
+          BCV_HOMEPAGE_URL,
+          insecureAgent,
+        );
       }
 
       throw err;
+    } finally {
+      // Clean up the timeout timer to prevent open handles
+      clearTimeout(timeoutId);
     }
   }
 
-  private httpsGetText(
+  /**
+   * Dedicated retry mechanism using the same Fetch API but with a relaxed dispatcher.
+   */
+  private async fetchInsecureFallback(
     url: string,
-    opts: {
-      headers: Record<string, string>;
-      rejectUnauthorized: boolean;
-      maxRedirects: number;
-      timeoutMs: number;
-    },
+    dispatcher: Agent,
   ): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const u = new URL(url);
-
-      const req = https.request(
-        {
-          protocol: u.protocol,
-          hostname: u.hostname,
-          port: u.port ? Number(u.port) : undefined,
-          path: `${u.pathname}${u.search}`,
-          method: "GET",
-          headers: {
-            ...opts.headers,
-            "accept-encoding": "gzip,deflate,br",
-          },
-          rejectUnauthorized: opts.rejectUnauthorized,
-        },
-        (res) => {
-          const status = res.statusCode ?? 0;
-          const location = res.headers.location;
-
-          if (
-            status >= 300 &&
-            status < 400 &&
-            location &&
-            opts.maxRedirects > 0
-          ) {
-            // Consume response before redirecting.
-            res.resume();
-            const nextUrl = new URL(location, url).toString();
-            this.httpsGetText(nextUrl, {
-              ...opts,
-              maxRedirects: opts.maxRedirects - 1,
-            }).then(resolve, reject);
-            return;
-          }
-
-          if (status < 200 || status >= 300) {
-            res.setEncoding("utf8");
-            let bodySnippet = "";
-            res.on("data", (chunk) => {
-              if (bodySnippet.length < 2048) bodySnippet += String(chunk);
-            });
-            res.on("end", () => {
-              reject(
-                new Error(
-                  `BCV request failed: ${status} ${res.statusMessage ?? ""} ${bodySnippet ? `- ${bodySnippet.slice(0, 200)}` : ""}`,
-                ),
-              );
-            });
-            return;
-          }
-
-          const encoding = String(
-            res.headers["content-encoding"] ?? "",
-          ).toLowerCase();
-
-          let stream: NodeJS.ReadableStream = res;
-          if (encoding === "gzip") stream = res.pipe(createGunzip());
-          else if (encoding === "deflate") stream = res.pipe(createInflate());
-          else if (encoding === "br")
-            stream = res.pipe(createBrotliDecompress());
-
-          const chunks: Buffer[] = [];
-          stream.on("data", (chunk) => {
-            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-          });
-          stream.on("error", reject);
-          stream.on("end", () => {
-            resolve(Buffer.concat(chunks).toString("utf8"));
-          });
-        },
-      );
-
-      req.setTimeout(opts.timeoutMs, () => {
-        req.destroy(new Error("BCV request timed out"));
-      });
-
-      req.on("error", reject);
-      req.end();
+    const res = await fetch(url, {
+      headers: this.bcvHeaders,
+      // @ts-expect-error - Node 18+ specific option, dispatcher is not in standard fetch types
+      dispatcher: dispatcher,
+      signal: AbortSignal.timeout(this.BCV_TIMEOUT_MS), // Simpler timeout for modern Node
     });
+
+    if (!res.ok) {
+      throw new Error(
+        `BCV Insecure fallback failed: ${res.status} ${res.statusText}`,
+      );
+    }
+
+    return await res.text();
   }
 
   private errorToCode(err: unknown): string | undefined {
