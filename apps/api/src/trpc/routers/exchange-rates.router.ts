@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { CurrencyCode } from "../../../generated/prisma/client";
+import { CurrencyCode } from "@/generated/prisma/client";
 // biome-ignore lint/style/useImportType: PrismaService must be a runtime import so NestJS can emit DI metadata for constructor injection.
-import { PrismaService } from "../../prisma/prisma.service.js";
-import { publicProcedure, router } from "../trpc.js";
+import { PrismaService } from "@/prisma/prisma.service";
+import { publicProcedure, router } from "@/trpc/trpc";
 
 /**
  * Zod schema for the latest rates response.

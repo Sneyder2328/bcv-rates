@@ -1,8 +1,8 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 // biome-ignore lint/style/useImportType: PrismaService must be a runtime import so NestJS can emit DI metadata for constructor injection.
-import { PrismaService } from "../../prisma/prisma.service.js";
-import { protectedProcedure, router } from "../trpc.js";
+import { PrismaService } from "@/prisma/prisma.service";
+import { protectedProcedure, router } from "@/trpc/trpc";
 
 function parseAmount(raw: string): number | null {
   // Remove spaces and handle both formats:

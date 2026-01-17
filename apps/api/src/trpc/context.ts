@@ -1,5 +1,5 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
-import { getFirebaseAdminAuth } from "../auth/firebase-admin.js";
+import { getFirebaseAdminAuth } from "@/auth/firebase-admin";
 
 export type TrpcUser = {
   uid: string;

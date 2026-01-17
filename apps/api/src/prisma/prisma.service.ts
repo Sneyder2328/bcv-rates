@@ -7,7 +7,7 @@ import {
 // biome-ignore lint/style/useImportType: ConfigService must be a runtime import so NestJS can emit DI metadata for constructor injection.
 import { ConfigService } from "@nestjs/config";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../../generated/prisma/client";
+import { PrismaClient } from "@/generated/prisma/client";
 
 /**
  * Extended Prisma service with connection pooling and lifecycle management.

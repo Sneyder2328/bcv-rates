@@ -5,11 +5,11 @@ import {
 } from "@nestjs/common";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import type { NextFunction, Request, Response } from "express";
-import { PrismaModule } from "../prisma/prisma.module.js";
+import { PrismaModule } from "@/prisma/prisma.module";
 // biome-ignore lint/style/useImportType: PrismaService must be a runtime import so NestJS can emit DI metadata for constructor injection.
-import { PrismaService } from "../prisma/prisma.service.js";
-import { createTrpcContext } from "./context.js";
-import { createAppRouter } from "./routers/app.router.js";
+import { PrismaService } from "@/prisma/prisma.service";
+import { createTrpcContext } from "@/trpc/context";
+import { createAppRouter } from "@/trpc/routers/app.router";
 
 @Module({
   imports: [PrismaModule],

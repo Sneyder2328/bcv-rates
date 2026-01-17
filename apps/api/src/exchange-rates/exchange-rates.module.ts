@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { ExchangeRatesService } from "./exchange-rates.service.js";
+import { ExchangeRatesService } from "@/exchange-rates/exchange-rates.service";
 
 @Module({
   providers: [ExchangeRatesService],

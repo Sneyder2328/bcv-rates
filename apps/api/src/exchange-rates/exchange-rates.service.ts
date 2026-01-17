@@ -1,9 +1,9 @@
 import { Injectable, Logger, type OnModuleInit } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { Agent } from "undici";
-import { CurrencyCode, Prisma } from "../../generated/prisma/client";
+import { CurrencyCode, Prisma } from "@/generated/prisma/client";
 // biome-ignore lint/style/useImportType: PrismaService must be a runtime import so NestJS can emit DI metadata for constructor injection.
-import { PrismaService } from "../prisma/prisma.service.js";
+import { PrismaService } from "@/prisma/prisma.service";
 
 const BCV_HOMEPAGE_URL = "https://www.bcv.org.ve/";
 

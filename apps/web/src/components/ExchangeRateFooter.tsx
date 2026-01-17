@@ -9,7 +9,7 @@ export function ExchangeRateFooter({ fetchedAt }: ExchangeRateFooterProps) {
         Fuente: Banco Central de Venezuela
       </p>
       {fetchedAt && (
-        <p className="text-xs text-zinc-500/70 uppercase tracking-widest">
+        <p className="text-[10px] text-zinc-500/70 uppercase tracking-widest">
           Actualizado:{" "}
           {new Date(fetchedAt).toLocaleString("es-VE", {
             dateStyle: "short",
