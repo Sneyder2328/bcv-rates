@@ -136,3 +136,13 @@ jobs:
             pm2 reload ecosystem.config.js --env production || pm2 start ecosystem.config.js --env production
             pm2 save
             echo "✓ PM2 restarted"
+
+            echo "→ Checking nginx config..."
+            if ! diff -q "$APP_DIR/deploy/nginx/cambio.conf" /etc/nginx/sites-available/cambio > /dev/null 2>&1; then
+              echo "  Nginx config changed, updating..."
+              sudo /usr/bin/cp "$APP_DIR/deploy/nginx/cambio.conf" /etc/nginx/sites-available/cambio
+              sudo /usr/sbin/nginx -t && sudo /usr/bin/systemctl reload nginx
+              echo "✓ Nginx config updated and reloaded"
+            else
+              echo "✓ Nginx config unchanged"
+            fi
