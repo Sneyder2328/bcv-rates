@@ -1,5 +1,4 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
-import type { UmamiService } from "@/analytics/umami.service";
 import { getFirebaseAdminAuth } from "@/auth/firebase-admin";
 
 export type TrpcUser = {
@@ -8,7 +7,6 @@ export type TrpcUser = {
 
 export type TrpcContext = {
   user: TrpcUser | null;
-  umami: UmamiService;
 };
 
 function getBearerToken(authHeader: string | undefined): string | null {
@@ -20,19 +18,18 @@ function getBearerToken(authHeader: string | undefined): string | null {
 
 export async function createTrpcContext(
   opts: CreateExpressContextOptions,
-  umami: UmamiService,
 ): Promise<TrpcContext> {
   const token = getBearerToken(opts.req.headers.authorization);
   if (!token) {
-    return { user: null, umami };
+    return { user: null };
   }
 
   try {
     const decoded = await getFirebaseAdminAuth().verifyIdToken(token);
-    return { user: { uid: decoded.uid }, umami };
+    return { user: { uid: decoded.uid } };
   } catch {
     // Treat invalid/expired tokens as unauthenticated.
     // Protected procedures will enforce auth via `protectedProcedure`.
-    return { user: null, umami };
+    return { user: null };
   }
 }

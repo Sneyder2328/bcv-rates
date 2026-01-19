@@ -1,8 +1,6 @@
 import { Injectable, Logger, type OnModuleInit } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { Agent } from "undici";
-// biome-ignore lint/style/useImportType: UmamiService must be a runtime import so NestJS can emit DI metadata for constructor injection.
-import { UmamiService } from "@/analytics/umami.service";
 import { CurrencyCode, Prisma } from "@/generated/prisma/client";
 // biome-ignore lint/style/useImportType: PrismaService must be a runtime import so NestJS can emit DI metadata for constructor injection.
 import { PrismaService } from "@/prisma/prisma.service";
@@ -20,10 +18,7 @@ export class ExchangeRatesService implements OnModuleInit {
   private readonly logger = new Logger(ExchangeRatesService.name);
   private readonly BCV_TIMEOUT_MS = 90_000;
 
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly umami: UmamiService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Helper to determine if we allow insecure TLS based on env vars.
@@ -42,7 +37,7 @@ export class ExchangeRatesService implements OnModuleInit {
   }
 
   onModuleInit() {
-    // Don’t block API startup on a remote fetch; just log if this fails.
+    // Don't block API startup on a remote fetch; just log if this fails.
     this.refreshFromBcv("startup").catch((err) => {
       this.logger.error(
         `BCV refresh failed on startup: ${this.errorToString(err)}`,
@@ -91,99 +86,54 @@ export class ExchangeRatesService implements OnModuleInit {
   }
 
   private async refreshFromBcv(trigger: "startup" | "cron") {
-    const startedAtMs = Date.now();
     this.logger.log(
       `Refreshing BCV rates (${trigger}) at ${new Date().toISOString()}`,
     );
-    try {
-      const { validAt, usd, eur } = await this.scrapeBcvHomepage();
-      const fetchedAt = new Date();
 
-      await this.prisma.$transaction([
-        this.prisma.exchangeRate.upsert({
-          where: { currency_validAt: { currency: CurrencyCode.USD, validAt } },
-          create: { currency: CurrencyCode.USD, validAt, rate: usd, fetchedAt },
-          update: { rate: usd, fetchedAt },
-        }),
-        this.prisma.exchangeRate.upsert({
-          where: { currency_validAt: { currency: CurrencyCode.EUR, validAt } },
-          create: { currency: CurrencyCode.EUR, validAt, rate: eur, fetchedAt },
-          update: { rate: eur, fetchedAt },
-        }),
-        // Historical Records
-        this.prisma.historicalExchangeRate.upsert({
-          where: {
-            currency_date: { currency: CurrencyCode.USD, date: validAt },
-          },
-          create: {
-            currency: CurrencyCode.USD,
-            date: validAt,
-            rate: usd,
-            fetchedAt,
-          },
-          update: { rate: usd, fetchedAt },
-        }),
-        this.prisma.historicalExchangeRate.upsert({
-          where: {
-            currency_date: { currency: CurrencyCode.EUR, date: validAt },
-          },
-          create: {
-            currency: CurrencyCode.EUR,
-            date: validAt,
-            rate: eur,
-            fetchedAt,
-          },
-          update: { rate: eur, fetchedAt },
-        }),
-      ]);
+    const { validAt, usd, eur } = await this.scrapeBcvHomepage();
+    const fetchedAt = new Date();
 
-      this.umami.track(
-        "bcv_refresh",
-        {
-          trigger,
-          result: "success",
-          durationMs: Date.now() - startedAtMs,
+    await this.prisma.$transaction([
+      this.prisma.exchangeRate.upsert({
+        where: { currency_validAt: { currency: CurrencyCode.USD, validAt } },
+        create: { currency: CurrencyCode.USD, validAt, rate: usd, fetchedAt },
+        update: { rate: usd, fetchedAt },
+      }),
+      this.prisma.exchangeRate.upsert({
+        where: { currency_validAt: { currency: CurrencyCode.EUR, validAt } },
+        create: { currency: CurrencyCode.EUR, validAt, rate: eur, fetchedAt },
+        update: { rate: eur, fetchedAt },
+      }),
+      // Historical Records
+      this.prisma.historicalExchangeRate.upsert({
+        where: {
+          currency_date: { currency: CurrencyCode.USD, date: validAt },
         },
-        { url: "https://api/jobs/bcv-refresh" },
-      );
-
-      this.logger.log(
-        `Saved BCV rates (${trigger}) for ${validAt.toISOString().slice(0, 10)}: USD=${usd.toString()} EUR=${eur.toString()}`,
-      );
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      const code = this.errorToCode(err);
-
-      const errorType = (() => {
-        if (this.isTlsVerificationErrorCode(code)) return "tls";
-        if (
-          message.includes("BCV request failed") ||
-          message.includes("Insecure fallback failed")
-        ) {
-          return "http";
-        }
-        if (
-          message.includes("Could not find") ||
-          message.includes("Invalid BCV")
-        )
-          return "parse";
-        return "unknown";
-      })();
-
-      this.umami.track(
-        "bcv_refresh",
-        {
-          trigger,
-          result: "error",
-          durationMs: Date.now() - startedAtMs,
-          errorType,
-          ...(code ? { errorCode: code } : {}),
+        create: {
+          currency: CurrencyCode.USD,
+          date: validAt,
+          rate: usd,
+          fetchedAt,
         },
-        { url: "https://api/jobs/bcv-refresh" },
-      );
+        update: { rate: usd, fetchedAt },
+      }),
+      this.prisma.historicalExchangeRate.upsert({
+        where: {
+          currency_date: { currency: CurrencyCode.EUR, date: validAt },
+        },
+        create: {
+          currency: CurrencyCode.EUR,
+          date: validAt,
+          rate: eur,
+          fetchedAt,
+        },
+        update: { rate: eur, fetchedAt },
+      }),
+    ]);
 
-      throw err;
-    }
+    this.logger.log(
+      `Saved BCV rates (${trigger}) for ${validAt.toISOString().slice(0, 10)}: USD=${usd.toString()} EUR=${eur.toString()}`,
+    );
   }
 
   private async scrapeBcvHomepage(): Promise<{

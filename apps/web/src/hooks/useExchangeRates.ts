@@ -100,12 +100,50 @@ export function useExchangeRates() {
 
   useEffect(() => {
     if (!queryError) return;
+
+    // Categorize error type from message (privacy-safe)
+    const errorMessage = queryError.message || "";
+    let category: "network" | "timeout" | "auth" | "server" | "unknown" =
+      "unknown";
+
+    if (
+      errorMessage.includes("fetch") ||
+      errorMessage.includes("network") ||
+      errorMessage.includes("connection")
+    ) {
+      category = "network";
+    } else if (
+      errorMessage.includes("timeout") ||
+      errorMessage.includes("aborted")
+    ) {
+      category = "timeout";
+    } else if (
+      errorMessage.includes("unauthorized") ||
+      errorMessage.includes("forbidden") ||
+      errorMessage.includes("auth")
+    ) {
+      category = "auth";
+    } else if (
+      errorMessage.includes("500") ||
+      errorMessage.includes("internal") ||
+      errorMessage.includes("server")
+    ) {
+      category = "server";
+    }
+
+    // Check if we have cached rates as fallback
+    const hasCachedRates = !!rates;
+
     trackOnce(
       `rates_load_error_${isOnline ? "online" : "offline"}`,
       "rates_load_error",
-      { online: isOnline },
+      {
+        online: isOnline,
+        category,
+        hasCachedRates,
+      },
     );
-  }, [isOnline, queryError]);
+  }, [isOnline, queryError, rates]);
 
   useEffect(() => {
     if (isOnline) return;
