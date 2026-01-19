@@ -5,6 +5,9 @@ import {
 } from "@nestjs/common";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import type { NextFunction, Request, Response } from "express";
+import { AnalyticsModule } from "@/analytics/analytics.module";
+// biome-ignore lint/style/useImportType: UmamiService must be a runtime import so NestJS can emit DI metadata for constructor injection.
+import { UmamiService } from "@/analytics/umami.service";
 import { PrismaModule } from "@/prisma/prisma.module";
 // biome-ignore lint/style/useImportType: PrismaService must be a runtime import so NestJS can emit DI metadata for constructor injection.
 import { PrismaService } from "@/prisma/prisma.service";
@@ -12,16 +15,19 @@ import { createTrpcContext } from "@/trpc/context";
 import { createAppRouter } from "@/trpc/routers/app.router";
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AnalyticsModule],
 })
 export class TrpcModule implements NestModule {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly umami: UmamiService,
+  ) {}
 
   configure(consumer: MiddlewareConsumer) {
     const appRouter = createAppRouter(this.prisma);
     const handler = trpcExpress.createExpressMiddleware({
       router: appRouter,
-      createContext: createTrpcContext,
+      createContext: (opts) => createTrpcContext(opts, this.umami),
     });
 
     consumer

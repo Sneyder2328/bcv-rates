@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { trackOnce } from "@/analytics/umami";
 import { trpc } from "@/trpc/client";
 import { useOnlineStatus } from "@/utils/network";
 
@@ -90,6 +92,29 @@ export function useExchangeRates() {
   const error = queryError
     ? queryError.message || "Error inesperado cargando las tasas."
     : null;
+
+  useEffect(() => {
+    if (!rates) return;
+    trackOnce("rates_loaded", "rates_loaded", { online: isOnline });
+  }, [isOnline, rates]);
+
+  useEffect(() => {
+    if (!queryError) return;
+    trackOnce(
+      `rates_load_error_${isOnline ? "online" : "offline"}`,
+      "rates_load_error",
+      { online: isOnline },
+    );
+  }, [isOnline, queryError]);
+
+  useEffect(() => {
+    if (isOnline) return;
+    if (rates) return;
+    trackOnce("offline_mode_shown_rates", "offline_mode_shown", {
+      surface: "rates",
+      hasRates: false,
+    });
+  }, [isOnline, rates]);
 
   const syncingRates = isOnline && isFetching;
 

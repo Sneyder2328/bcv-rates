@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { trackDebounced } from "@/analytics/umami";
 import { formatAmount, parseAmount } from "@/utils/formatters";
 import type { ExchangeRates } from "./useExchangeRates";
 
@@ -21,11 +22,23 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       return;
     }
 
+    const customRateNum = parseAmount(customRate);
+    if (amount > 0) {
+      trackDebounced(
+        "convert",
+        "convert",
+        {
+          input: "ves",
+          hasCustomRate: Boolean(customRateNum && customRateNum > 0),
+        },
+        800,
+      );
+    }
+
     setUsd(formatAmount(amount / rates.usd));
     setEur(formatAmount(amount / rates.eur));
 
     // Also update custom amount if custom rate is set
-    const customRateNum = parseAmount(customRate);
     if (customRateNum && customRateNum > 0) {
       setCustomAmount(formatAmount(amount / customRateNum));
     }
@@ -43,12 +56,24 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       return;
     }
 
+    const customRateNum = parseAmount(customRate);
+    if (amount > 0) {
+      trackDebounced(
+        "convert",
+        "convert",
+        {
+          input: "usd",
+          hasCustomRate: Boolean(customRateNum && customRateNum > 0),
+        },
+        800,
+      );
+    }
+
     const ves = amount * rates.usd;
     setBolivars(formatAmount(ves));
     setEur(formatAmount(ves / rates.eur));
 
     // Also update custom amount if custom rate is set
-    const customRateNum = parseAmount(customRate);
     if (customRateNum && customRateNum > 0) {
       setCustomAmount(formatAmount(ves / customRateNum));
     }
@@ -66,12 +91,24 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       return;
     }
 
+    const customRateNum = parseAmount(customRate);
+    if (amount > 0) {
+      trackDebounced(
+        "convert",
+        "convert",
+        {
+          input: "eur",
+          hasCustomRate: Boolean(customRateNum && customRateNum > 0),
+        },
+        800,
+      );
+    }
+
     const ves = amount * rates.eur;
     setBolivars(formatAmount(ves));
     setUsd(formatAmount(ves / rates.usd));
 
     // Also update custom amount if custom rate is set
-    const customRateNum = parseAmount(customRate);
     if (customRateNum && customRateNum > 0) {
       setCustomAmount(formatAmount(ves / customRateNum));
     }
@@ -103,6 +140,15 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       setUsd("");
       setEur("");
       return;
+    }
+
+    if (amount > 0) {
+      trackDebounced(
+        "convert",
+        "convert",
+        { input: "custom", hasCustomRate: true },
+        800,
+      );
     }
 
     const ves = amount * customRateNum;

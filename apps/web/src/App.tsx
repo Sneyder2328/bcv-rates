@@ -1,6 +1,7 @@
 //import { AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
+import { track } from "@/analytics/umami";
 import { useAuth } from "@/auth/AuthProvider";
 import { AuthDialog } from "@/components/AuthDialog";
 import { BackgroundDecoration } from "@/components/BackgroundDecoration";
@@ -110,8 +111,12 @@ function App() {
              */}
 
         <Navbar
-          onOpenSettings={() => setSettingsOpen(true)}
+          onOpenSettings={() => {
+            track("settings_open");
+            setSettingsOpen(true);
+          }}
           onOpenAuth={(mode) => {
+            track("auth_open", { mode });
             setAuthMode(mode);
             setAuthDialogOpen(true);
           }}
@@ -187,6 +192,7 @@ function App() {
                 customRatesQuery={customRatesQuery}
                 customUnitLabel={customUnitLabel}
                 onRateSelect={(label, formattedRate) => {
+                  track("custom_rate_select", { source: "main" });
                   setCustomUnitLabel(label);
                   onCustomRateChange(formattedRate);
                 }}
@@ -208,7 +214,10 @@ function App() {
 
       <SettingsDialog
         open={settingsOpen}
-        onClose={() => setSettingsOpen(false)}
+        onClose={() => {
+          track("settings_close");
+          setSettingsOpen(false);
+        }}
       />
     </div>
   );

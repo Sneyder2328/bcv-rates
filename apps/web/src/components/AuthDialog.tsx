@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { track } from "@/analytics/umami";
 import { useAuth } from "../auth/AuthProvider.tsx";
 import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
@@ -35,16 +36,19 @@ export function AuthDialog({
   async function handleEmailPasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
+    track("auth_method_click", { method: "email", mode });
     try {
       if (mode === "login") {
         await signInWithEmailPassword(email, password);
       } else {
         await signUpWithEmailPassword(email, password);
       }
+      track("auth_success", { method: "email", mode });
       toast.success("Sesión iniciada");
       onClose();
     } catch (err) {
       console.error(err);
+      track("auth_error", { method: "email", mode });
       toast.error("No se pudo completar la autenticación");
     } finally {
       setSubmitting(false);
@@ -53,12 +57,15 @@ export function AuthDialog({
 
   async function handleGoogle() {
     setSubmitting(true);
+    track("auth_method_click", { method: "google", mode });
     try {
       await signInWithGoogle();
+      track("auth_success", { method: "google", mode });
       toast.success("Sesión iniciada");
       onClose();
     } catch (err) {
       console.error(err);
+      track("auth_error", { method: "google", mode });
       toast.error("No se pudo iniciar sesión con Google");
     } finally {
       setSubmitting(false);

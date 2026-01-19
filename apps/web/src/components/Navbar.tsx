@@ -1,4 +1,5 @@
 import { LogOut, Settings } from "lucide-react";
+import { track } from "@/analytics/umami";
 import { useAuth } from "../auth/AuthProvider.tsx";
 
 type NavbarProps = {
@@ -70,7 +71,10 @@ export function Navbar({ onOpenSettings, onOpenAuth }: NavbarProps) {
             </button>
             <button
               type="button"
-              onClick={() => void signOut()}
+              onClick={() => {
+                track("auth_signout");
+                void signOut();
+              }}
               className="inline-flex items-center justify-center rounded-xl bg-zinc-950/50 border border-zinc-800/80 px-2.5 py-2 text-zinc-300 hover:text-white hover:border-zinc-700 transition-colors"
               title="Logout"
             >

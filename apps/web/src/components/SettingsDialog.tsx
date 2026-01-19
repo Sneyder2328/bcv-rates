@@ -1,6 +1,7 @@
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { track, trackOnce } from "@/analytics/umami";
 import { useAuth } from "../auth/AuthProvider.tsx";
 import { trpc } from "../trpc/client.ts";
 import { writeCachedCustomRatesList } from "../utils/customRatesCache.ts";
@@ -18,6 +19,15 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const { user } = useAuth();
   const isOnline = useOnlineStatus();
   const utils = trpc.useUtils();
+
+  useEffect(() => {
+    if (!open) return;
+    if (isOnline) return;
+    if (!user) return;
+    trackOnce("offline_mode_shown_settings", "offline_mode_shown", {
+      surface: "settings",
+    });
+  }, [isOnline, open, user]);
 
   const listQuery = trpc.customRates.list.useQuery(undefined, {
     enabled: open && !!user && isOnline,
@@ -79,6 +89,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
 
     try {
       await createMutation.mutateAsync({ label, rate });
+      track("custom_rate_create", { source: "settings" });
       setLabel("");
       setRate("");
       toast.success("Tasa guardada");
@@ -95,6 +106,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     }
     try {
       await deleteMutation.mutateAsync({ id });
+      track("custom_rate_delete", { source: "settings" });
       toast.success("Tasa eliminada");
     } catch (err) {
       console.error(err);
@@ -109,6 +121,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     }
     try {
       await updateMutation.mutateAsync({ id, rate: editingRate });
+      track("custom_rate_update", { source: "settings" });
       toast.success("Tasa actualizada");
       setEditingId(null);
       setEditingRate("");
