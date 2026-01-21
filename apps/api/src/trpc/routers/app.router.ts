@@ -2,6 +2,7 @@
 import { PrismaService } from "@/prisma/prisma.service";
 import { createCustomRatesRouter } from "@/trpc/routers/custom-rates.router";
 import { createExchangeRatesRouter } from "@/trpc/routers/exchange-rates.router";
+import { createHistoricalRatesRouter } from "@/trpc/routers/historical-rates.router";
 import { router } from "@/trpc/trpc";
 
 /**
@@ -12,6 +13,7 @@ export function createAppRouter(prisma: PrismaService) {
   return router({
     customRates: createCustomRatesRouter(prisma),
     exchangeRates: createExchangeRatesRouter(prisma),
+    historicalRates: createHistoricalRatesRouter(prisma),
   });
 }
 

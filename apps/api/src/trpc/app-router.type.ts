@@ -19,6 +19,7 @@ const latestRateSchema = z
     rate: z.string(),
     validAt: z.string(),
     fetchedAt: z.string(),
+    previousRate: z.string().nullable().optional(),
   })
   .nullable();
 
@@ -88,6 +89,19 @@ export const appRouterType = t.router({
       .input(z.object({ id: z.string() }))
       .output(z.object({ ok: z.literal(true) }))
       .mutation(() => {
+        throw new Error("Not implemented (type-only router)");
+      }),
+  }),
+  historicalRates: t.router({
+    getHistory: t.procedure
+      .input(
+        z.object({
+          currency: z.enum(["USD", "EUR"]), // Hardcoded for type-only
+          limit: z.number().optional(),
+        }),
+      )
+      .output(z.array(z.object({ date: z.string(), rate: z.string() })))
+      .query(() => {
         throw new Error("Not implemented (type-only router)");
       }),
   }),

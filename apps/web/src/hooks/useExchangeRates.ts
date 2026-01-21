@@ -6,14 +6,26 @@ import { useOnlineStatus } from "@/utils/network";
 export interface ExchangeRates {
   usd: number;
   eur: number;
+  usdPrevious?: number;
+  eurPrevious?: number;
   validAt: string;
   fetchedAt: string;
 }
 
 function deriveRates(
   latestRates: {
-    USD?: { rate: string; validAt: string; fetchedAt: string } | null;
-    EUR?: { rate: string; validAt: string; fetchedAt: string } | null;
+    USD?: {
+      rate: string;
+      validAt: string;
+      fetchedAt: string;
+      previousRate?: string | null;
+    } | null;
+    EUR?: {
+      rate: string;
+      validAt: string;
+      fetchedAt: string;
+      previousRate?: string | null;
+    } | null;
   } | null,
 ): ExchangeRates | null {
   if (!latestRates) return null;
@@ -25,6 +37,13 @@ function deriveRates(
     ? Number.parseFloat(latestRates.EUR.rate)
     : Number.NaN;
 
+  const usdPrev =
+    latestRates.USD?.previousRate &&
+    Number.parseFloat(latestRates.USD.previousRate);
+  const eurPrev =
+    latestRates.EUR?.previousRate &&
+    Number.parseFloat(latestRates.EUR.previousRate);
+
   if (!Number.isFinite(usdRate) || !Number.isFinite(eurRate)) {
     return null;
   }
@@ -32,6 +51,8 @@ function deriveRates(
   return {
     usd: usdRate,
     eur: eurRate,
+    usdPrevious: Number.isFinite(usdPrev) ? (usdPrev as number) : undefined,
+    eurPrevious: Number.isFinite(eurPrev) ? (eurPrev as number) : undefined,
     validAt:
       latestRates.USD?.validAt ??
       latestRates.EUR?.validAt ??
@@ -63,10 +84,10 @@ function deriveStatusLine(
   const dateText = Number.isNaN(date.getTime())
     ? rates.validAt
     : date.toLocaleDateString("es-VE", {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-      });
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    });
 
   return `Fecha Valor: ${dateText}`;
 }

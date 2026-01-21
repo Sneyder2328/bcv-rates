@@ -10,6 +10,7 @@ import { CustomRateInput } from "@/components/CustomRateInput";
 import { CustomRatesComponent } from "@/components/CustomRatesComponent";
 import { ExchangeRateFooter } from "@/components/ExchangeRateFooter";
 import { ExchangeRateHeader } from "@/components/ExchangeRateHeader";
+import { HistoryChart } from "@/components/HistoryChart";
 import { Navbar } from "@/components/Navbar";
 import { SectionDivider } from "@/components/SectionDivider";
 import { SettingsDialog } from "@/components/SettingsDialog";
@@ -88,6 +89,16 @@ function App() {
 
   const disabled = !rates;
 
+  const usdDelta =
+    rates && rates.usdPrevious
+      ? ((rates.usd - rates.usdPrevious) / rates.usdPrevious) * 100
+      : undefined;
+
+  const eurDelta =
+    rates && rates.eurPrevious
+      ? ((rates.eur - rates.eurPrevious) / rates.eurPrevious) * 100
+      : undefined;
+
   return (
     <div className="relative min-h-screen w-full bg-[#09090b] text-zinc-100 flex items-center justify-center p-1 sm:p-4 font-sans overflow-hidden selection:bg-indigo-500/30">
       <BackgroundDecoration />
@@ -157,6 +168,7 @@ function App() {
                 exchangeRate={
                   rates ? `1 USD = ${formatAmount(rates.usd)} Bs` : undefined
                 }
+                deltaPercent={usdDelta}
               />
 
               {/* EUR Input */}
@@ -171,6 +183,7 @@ function App() {
                 exchangeRate={
                   rates ? `1 EUR = ${formatAmount(rates.eur)} Bs` : undefined
                 }
+                deltaPercent={eurDelta}
               />
             </div>
 
@@ -188,15 +201,20 @@ function App() {
             />
 
             {user && (
-              <CustomRatesComponent
-                customRatesQuery={customRatesQuery}
-                customUnitLabel={customUnitLabel}
-                onRateSelect={(label, formattedRate) => {
-                  track("custom_rate_select", { source: "main" });
-                  setCustomUnitLabel(label);
-                  onCustomRateChange(formattedRate);
-                }}
-              />
+              <>
+                <CustomRatesComponent
+                  customRatesQuery={customRatesQuery}
+                  customUnitLabel={customUnitLabel}
+                  onRateSelect={(label, formattedRate) => {
+                    track("custom_rate_select", { source: "main" });
+                    setCustomUnitLabel(label);
+                    onCustomRateChange(formattedRate);
+                  }}
+                />
+
+                <SectionDivider label="Histórico" />
+                <HistoryChart />
+              </>
             )}
           </CardContent>
         </Card>

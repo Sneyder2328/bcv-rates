@@ -1,4 +1,4 @@
-import { Check, Copy } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, Copy, Minus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "./ui/input.tsx";
@@ -14,6 +14,7 @@ type CurrencyInputProps = {
   focusColor: "indigo" | "emerald" | "blue";
   exchangeRate?: string;
   inputSize?: "sm" | "lg";
+  deltaPercent?: number;
 };
 
 const focusColorClasses = {
@@ -44,6 +45,7 @@ export function CurrencyInput({
   focusColor,
   exchangeRate,
   inputSize = "sm",
+  deltaPercent,
 }: CurrencyInputProps) {
   const [copied, setCopied] = useState(false);
   const colors = focusColorClasses[focusColor];
@@ -103,11 +105,33 @@ export function CurrencyInput({
           {symbol}
         </div>
       </div>
-      {exchangeRate && (
-        <p className="text-[14px] font-medium text-zinc-400 text-right px-1">
-          {exchangeRate}
-        </p>
-      )}
+      <div className="flex justify-end items-center gap-2 px-1">
+        {exchangeRate && (
+          <p className="text-[13px] font-medium text-zinc-400">
+            {exchangeRate}
+          </p>
+        )}
+
+        {typeof deltaPercent === "number" && (
+          <div
+            className={`flex items-center gap-1 text-xs font-medium ${deltaPercent > 0
+              ? "text-emerald-400"
+              : deltaPercent < 0
+                ? "text-rose-400"
+                : "text-zinc-400"
+              }`}
+          >
+            {deltaPercent > 0 ? (
+              <ArrowUp size={12} />
+            ) : deltaPercent < 0 ? (
+              <ArrowDown size={12} />
+            ) : (
+              <Minus size={12} />
+            )}
+            <span>{Math.abs(deltaPercent).toFixed(2)}%</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

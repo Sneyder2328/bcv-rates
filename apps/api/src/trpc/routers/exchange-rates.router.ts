@@ -12,6 +12,7 @@ const latestRateSchema = z
     rate: z.string(),
     validAt: z.string(),
     fetchedAt: z.string(),
+    previousRate: z.string().nullable().optional(),
   })
   .nullable();
 
@@ -32,31 +33,40 @@ export function createExchangeRatesRouter(prisma: PrismaService) {
      * Get the latest exchange rates for USD and EUR.
      */
     getLatest: publicProcedure.query(async (): Promise<LatestRatesResponse> => {
-      const [usd, eur] = await Promise.all([
-        prisma.exchangeRate.findFirst({
+      const [usdRates, eurRates] = await Promise.all([
+        prisma.exchangeRate.findMany({
           where: { currency: CurrencyCode.USD },
           orderBy: [{ validAt: "desc" }, { fetchedAt: "desc" }],
+          take: 2,
         }),
-        prisma.exchangeRate.findFirst({
+        prisma.exchangeRate.findMany({
           where: { currency: CurrencyCode.EUR },
           orderBy: [{ validAt: "desc" }, { fetchedAt: "desc" }],
+          take: 2,
         }),
       ]);
+
+      const usd = usdRates[0];
+      const usdPrev = usdRates[1];
+      const eur = eurRates[0];
+      const eurPrev = eurRates[1];
 
       return {
         USD: usd
           ? {
-              rate: usd.rate.toString(),
-              validAt: usd.validAt.toISOString(),
-              fetchedAt: usd.fetchedAt.toISOString(),
-            }
+            rate: usd.rate.toString(),
+            validAt: usd.validAt.toISOString(),
+            fetchedAt: usd.fetchedAt.toISOString(),
+            previousRate: usdPrev ? usdPrev.rate.toString() : null,
+          }
           : null,
         EUR: eur
           ? {
-              rate: eur.rate.toString(),
-              validAt: eur.validAt.toISOString(),
-              fetchedAt: eur.fetchedAt.toISOString(),
-            }
+            rate: eur.rate.toString(),
+            validAt: eur.validAt.toISOString(),
+            fetchedAt: eur.fetchedAt.toISOString(),
+            previousRate: eurPrev ? eurPrev.rate.toString() : null,
+          }
           : null,
       };
     }),
