@@ -46,8 +46,7 @@ export class ExchangeRatesService implements OnModuleInit {
     });
   }
 
-  @Cron("30 17 * * *", { timeZone: "America/Caracas" })
-  @Cron("0 19 * * *", { timeZone: "America/Caracas" })
+  @Cron("10 17,19,23 * * *", { timeZone: "America/Caracas" })
   async refreshFromBcvCron() {
     await this.refreshFromBcv("cron");
   }
