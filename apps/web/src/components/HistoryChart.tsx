@@ -23,14 +23,24 @@ export function HistoryChart() {
         // Data comes ordered by date desc, we want a chart from left (old) to right (new)
         return [...data]
             .reverse()
-            .map((item) => ({
-                date: new Date(item.date).toLocaleDateString(undefined, {
-                    month: "short",
-                    day: "numeric",
-                }),
-                fullDate: new Date(item.date).toLocaleDateString(),
-                value: parseFloat(item.rate),
-            }));
+            .map((item) => {
+                // Parse the date as a local calendar date, not a UTC timestamp.
+                // The API returns dates like "2026-01-22T00:00:00.000Z" which represent
+                // calendar dates, not specific moments in time. We extract YYYY-MM-DD
+                // and create a local Date to avoid timezone offset issues.
+                const datePart = item.date.split("T")[0]; // "2026-01-22"
+                const [year, month, day] = datePart.split("-").map(Number);
+                const localDate = new Date(year, month - 1, day); // month is 0-indexed
+
+                return {
+                    date: localDate.toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                    }),
+                    fullDate: localDate.toLocaleDateString(),
+                    value: parseFloat(item.rate),
+                };
+            });
     }, [data]);
 
     const toggleCurrency = (c: "USD" | "EUR") => setCurrency(c);
