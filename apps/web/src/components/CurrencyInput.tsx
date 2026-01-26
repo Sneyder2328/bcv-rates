@@ -114,12 +114,13 @@ export function CurrencyInput({
 
         {typeof deltaPercent === "number" && (
           <div
-            className={`flex items-center gap-1 text-xs font-medium ${deltaPercent > 0
-              ? "text-emerald-400"
-              : deltaPercent < 0
-                ? "text-rose-400"
-                : "text-zinc-400"
-              }`}
+            className={`flex items-center gap-1 text-xs font-medium ${
+              deltaPercent > 0
+                ? "text-emerald-400"
+                : deltaPercent < 0
+                  ? "text-rose-400"
+                  : "text-zinc-400"
+            }`}
           >
             {deltaPercent > 0 ? (
               <ArrowUp size={12} />

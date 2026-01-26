@@ -54,19 +54,19 @@ export function createExchangeRatesRouter(prisma: PrismaService) {
       return {
         USD: usd
           ? {
-            rate: usd.rate.toString(),
-            validAt: usd.validAt.toISOString(),
-            fetchedAt: usd.fetchedAt.toISOString(),
-            previousRate: usdPrev ? usdPrev.rate.toString() : null,
-          }
+              rate: usd.rate.toString(),
+              validAt: usd.validAt.toISOString(),
+              fetchedAt: usd.fetchedAt.toISOString(),
+              previousRate: usdPrev ? usdPrev.rate.toString() : null,
+            }
           : null,
         EUR: eur
           ? {
-            rate: eur.rate.toString(),
-            validAt: eur.validAt.toISOString(),
-            fetchedAt: eur.fetchedAt.toISOString(),
-            previousRate: eurPrev ? eurPrev.rate.toString() : null,
-          }
+              rate: eur.rate.toString(),
+              validAt: eur.validAt.toISOString(),
+              fetchedAt: eur.fetchedAt.toISOString(),
+              previousRate: eurPrev ? eurPrev.rate.toString() : null,
+            }
           : null,
       };
     }),

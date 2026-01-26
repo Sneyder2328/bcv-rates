@@ -92,46 +92,96 @@ export class ExchangeRatesService implements OnModuleInit {
     const { validAt, usd, eur } = await this.scrapeBcvHomepage();
     const fetchedAt = new Date();
 
-    await this.prisma.$transaction([
-      this.prisma.exchangeRate.upsert({
+    // Check existing records to avoid updating fetchedAt when nothing has changed
+    const [existingUsd, existingEur] = await Promise.all([
+      this.prisma.exchangeRate.findUnique({
         where: { currency_validAt: { currency: CurrencyCode.USD, validAt } },
-        create: { currency: CurrencyCode.USD, validAt, rate: usd, fetchedAt },
-        update: { rate: usd, fetchedAt },
       }),
-      this.prisma.exchangeRate.upsert({
+      this.prisma.exchangeRate.findUnique({
         where: { currency_validAt: { currency: CurrencyCode.EUR, validAt } },
-        create: { currency: CurrencyCode.EUR, validAt, rate: eur, fetchedAt },
-        update: { rate: eur, fetchedAt },
-      }),
-      // Historical Records
-      this.prisma.historicalExchangeRate.upsert({
-        where: {
-          currency_date: { currency: CurrencyCode.USD, date: validAt },
-        },
-        create: {
-          currency: CurrencyCode.USD,
-          date: validAt,
-          rate: usd,
-          fetchedAt,
-        },
-        update: { rate: usd, fetchedAt },
-      }),
-      this.prisma.historicalExchangeRate.upsert({
-        where: {
-          currency_date: { currency: CurrencyCode.EUR, date: validAt },
-        },
-        create: {
-          currency: CurrencyCode.EUR,
-          date: validAt,
-          rate: eur,
-          fetchedAt,
-        },
-        update: { rate: eur, fetchedAt },
       }),
     ]);
 
+    const usdUnchanged = existingUsd?.rate.equals(usd);
+    const eurUnchanged = existingEur?.rate.equals(eur);
+
+    if (usdUnchanged && eurUnchanged) {
+      this.logger.log(
+        `BCV rates unchanged (${trigger}) for ${validAt.toISOString().slice(0, 10)}: USD=${usd.toString()} EUR=${eur.toString()} - skipping update`,
+      );
+      return;
+    }
+
+    // Build transaction operations only for changed rates
+    const operations: Prisma.PrismaPromise<unknown>[] = [];
+
+    if (!usdUnchanged) {
+      operations.push(
+        this.prisma.exchangeRate.upsert({
+          where: { currency_validAt: { currency: CurrencyCode.USD, validAt } },
+          create: {
+            currency: CurrencyCode.USD,
+            validAt,
+            rate: usd,
+            fetchedAt,
+          },
+          update: { rate: usd, fetchedAt },
+        }),
+        this.prisma.historicalExchangeRate.upsert({
+          where: {
+            currency_date: { currency: CurrencyCode.USD, date: validAt },
+          },
+          create: {
+            currency: CurrencyCode.USD,
+            date: validAt,
+            rate: usd,
+            fetchedAt,
+          },
+          update: { rate: usd, fetchedAt },
+        }),
+      );
+    }
+
+    if (!eurUnchanged) {
+      operations.push(
+        this.prisma.exchangeRate.upsert({
+          where: { currency_validAt: { currency: CurrencyCode.EUR, validAt } },
+          create: {
+            currency: CurrencyCode.EUR,
+            validAt,
+            rate: eur,
+            fetchedAt,
+          },
+          update: { rate: eur, fetchedAt },
+        }),
+        this.prisma.historicalExchangeRate.upsert({
+          where: {
+            currency_date: { currency: CurrencyCode.EUR, date: validAt },
+          },
+          create: {
+            currency: CurrencyCode.EUR,
+            date: validAt,
+            rate: eur,
+            fetchedAt,
+          },
+          update: { rate: eur, fetchedAt },
+        }),
+      );
+    }
+
+    if (operations.length > 0) {
+      await this.prisma.$transaction(operations);
+    }
+
+    const changedCurrencies = [
+      !usdUnchanged ? "USD" : null,
+      !eurUnchanged ? "EUR" : null,
+    ]
+      .filter(Boolean)
+      .join(", ");
+
     this.logger.log(
-      `Saved BCV rates (${trigger}) for ${validAt.toISOString().slice(0, 10)}: USD=${usd.toString()} EUR=${eur.toString()}`,
+      `Saved BCV rates (${trigger}) for ${validAt.toISOString().slice(0, 10)}: ${changedCurrencies} updated - USD=${usd.toString()} EUR=${eur.toString()}`,
     );
   }
 

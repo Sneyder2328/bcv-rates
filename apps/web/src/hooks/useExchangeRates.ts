@@ -84,10 +84,10 @@ function deriveStatusLine(
   const dateText = Number.isNaN(date.getTime())
     ? rates.validAt
     : date.toLocaleDateString("es-VE", {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-    });
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      });
 
   return `Fecha Valor: ${dateText}`;
 }
