@@ -73,32 +73,32 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
 ## Phase 2 — App skeleton + UI foundation
 **Goal:** navigation routes exist; base UI components exist; providers wired.
 
-- [ ] Navigation
-  - [ ] Install `@react-navigation/native` + native stack
-  - [ ] Create root stack:
-    - [ ] `Home`
-    - [ ] `Settings` (push)
-    - [ ] `History` (push; auth-gated)
-    - [ ] `Auth` (modal)
-- [ ] Providers
-  - [ ] `AuthProvider` (stub until Phase 5)
-  - [ ] `TrpcProvider` (stub until Phase 3)
-  - [ ] Toast provider using `react-native-toast-message`
-- [ ] UI primitives (StyleSheet)
-  - [ ] `Card`
-  - [ ] `Button`
-  - [ ] `Input`
-  - [ ] `Label`
-  - [ ] `SectionDivider`
-  - [ ] `Banner` (offline/read-only/errors)
-- [ ] Icons
-  - [ ] Choose icon approach (recommended: `lucide-react-native` + `react-native-svg`)
-  - [ ] Ensure tree-shaking / per-icon import style
-- [ ] Screen scaffolds
-  - [ ] `HomeScreen` layout placeholder
-  - [ ] `SettingsScreen` placeholder
-  - [ ] `HistoryScreen` placeholder
-  - [ ] `AuthModal` placeholder
+- [x] Navigation
+  - [x] Install `@react-navigation/native` + native stack
+  - [x] Create root stack:
+    - [x] `Home`
+    - [x] `Settings` (push)
+    - [x] `History` (push; auth-gated)
+    - [x] `Auth` (modal)
+- [x] Providers
+  - [x] `AuthProvider` (stub until Phase 5)
+  - [x] `TrpcProvider` (stub until Phase 3)
+  - [x] Toast provider using `react-native-toast-message`
+- [x] UI primitives (StyleSheet)
+  - [x] `Card`
+  - [x] `Button`
+  - [x] `Input`
+  - [x] `Label`
+  - [x] `SectionDivider`
+  - [x] `Banner` (offline/read-only/errors)
+- [x] Icons
+  - [x] Choose icon approach (recommended: `lucide-react-native` + `react-native-svg`)
+  - [x] Ensure tree-shaking / per-icon import style
+- [x] Screen scaffolds
+  - [x] `HomeScreen` layout placeholder
+  - [x] `SettingsScreen` placeholder
+  - [x] `HistoryScreen` placeholder
+  - [x] `AuthModal` placeholder
 
 **Exit criteria:** navigation works, screens render, toast can show a test message.
 
