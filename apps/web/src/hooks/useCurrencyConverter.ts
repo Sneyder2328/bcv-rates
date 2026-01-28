@@ -1,6 +1,11 @@
+import {
+  foreignToVes,
+  formatAmount,
+  parseAmount,
+  vesToForeign,
+} from "@bcv-rates/domain";
 import { useState } from "react";
 import { trackDebounced } from "@/analytics/umami";
-import { formatAmount, parseAmount } from "@/utils/formatters";
 import type { ExchangeRates } from "./useExchangeRates";
 
 export function useCurrencyConverter(rates: ExchangeRates | null) {
@@ -35,12 +40,12 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       );
     }
 
-    setUsd(formatAmount(amount / rates.usd));
-    setEur(formatAmount(amount / rates.eur));
+    setUsd(formatAmount(vesToForeign(amount, rates.usd)));
+    setEur(formatAmount(vesToForeign(amount, rates.eur)));
 
     // Also update custom amount if custom rate is set
     if (customRateNum && customRateNum > 0) {
-      setCustomAmount(formatAmount(amount / customRateNum));
+      setCustomAmount(formatAmount(vesToForeign(amount, customRateNum)));
     }
   }
 
@@ -69,13 +74,13 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       );
     }
 
-    const ves = amount * rates.usd;
+    const ves = foreignToVes(amount, rates.usd);
     setBolivars(formatAmount(ves));
-    setEur(formatAmount(ves / rates.eur));
+    setEur(formatAmount(vesToForeign(ves, rates.eur)));
 
     // Also update custom amount if custom rate is set
     if (customRateNum && customRateNum > 0) {
-      setCustomAmount(formatAmount(ves / customRateNum));
+      setCustomAmount(formatAmount(vesToForeign(ves, customRateNum)));
     }
   }
 
@@ -104,13 +109,13 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       );
     }
 
-    const ves = amount * rates.eur;
+    const ves = foreignToVes(amount, rates.eur);
     setBolivars(formatAmount(ves));
-    setUsd(formatAmount(ves / rates.usd));
+    setUsd(formatAmount(vesToForeign(ves, rates.usd)));
 
     // Also update custom amount if custom rate is set
     if (customRateNum && customRateNum > 0) {
-      setCustomAmount(formatAmount(ves / customRateNum));
+      setCustomAmount(formatAmount(vesToForeign(ves, customRateNum)));
     }
   }
 
@@ -121,7 +126,7 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
     const rateValue = parseAmount(next);
 
     if (vesAmount !== null && rateValue !== null && rateValue > 0) {
-      setCustomAmount(formatAmount(vesAmount / rateValue));
+      setCustomAmount(formatAmount(vesToForeign(vesAmount, rateValue)));
     } else {
       setCustomAmount("");
     }
@@ -151,10 +156,10 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       );
     }
 
-    const ves = amount * customRateNum;
+    const ves = foreignToVes(amount, customRateNum);
     setBolivars(formatAmount(ves));
-    setUsd(formatAmount(ves / rates.usd));
-    setEur(formatAmount(ves / rates.eur));
+    setUsd(formatAmount(vesToForeign(ves, rates.usd)));
+    setEur(formatAmount(vesToForeign(ves, rates.eur)));
   }
 
   return {

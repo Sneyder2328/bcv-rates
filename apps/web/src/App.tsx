@@ -89,15 +89,13 @@ function App() {
 
   const disabled = !rates;
 
-  const usdDelta =
-    rates && rates.usdPrevious
-      ? ((rates.usd - rates.usdPrevious) / rates.usdPrevious) * 100
-      : undefined;
+  const usdDelta = rates?.usdPrevious
+    ? ((rates.usd - rates.usdPrevious) / rates.usdPrevious) * 100
+    : undefined;
 
-  const eurDelta =
-    rates && rates.eurPrevious
-      ? ((rates.eur - rates.eurPrevious) / rates.eurPrevious) * 100
-      : undefined;
+  const eurDelta = rates?.eurPrevious
+    ? ((rates.eur - rates.eurPrevious) / rates.eurPrevious) * 100
+    : undefined;
 
   return (
     <div className="relative min-h-screen w-full bg-[#09090b] text-zinc-100 flex items-center justify-center p-1 sm:p-4 font-sans overflow-hidden selection:bg-indigo-500/30">

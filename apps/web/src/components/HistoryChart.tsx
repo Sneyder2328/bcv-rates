@@ -1,3 +1,7 @@
+import {
+  formatChartDate,
+  parseIsoCalendarDateToLocalDate,
+} from "@bcv-rates/domain";
 import { useMemo, useState } from "react";
 import {
   Area,
@@ -24,18 +28,13 @@ export function HistoryChart() {
     return [...data].reverse().map((item) => {
       // Parse the date as a local calendar date, not a UTC timestamp.
       // The API returns dates like "2026-01-22T00:00:00.000Z" which represent
-      // calendar dates, not specific moments in time. We extract YYYY-MM-DD
-      // and create a local Date to avoid timezone offset issues.
-      const datePart = item.date.split("T")[0]; // "2026-01-22"
-      const [year, month, day] = datePart.split("-").map(Number);
-      const localDate = new Date(year, month - 1, day); // month is 0-indexed
+      // calendar dates, not specific moments in time.
+      const localDate = parseIsoCalendarDateToLocalDate(item.date);
+      const { short, full } = formatChartDate(localDate);
 
       return {
-        date: localDate.toLocaleDateString(undefined, {
-          month: "short",
-          day: "numeric",
-        }),
-        fullDate: localDate.toLocaleDateString(),
+        date: short,
+        fullDate: full,
         value: parseFloat(item.rate),
       };
     });
@@ -58,6 +57,7 @@ export function HistoryChart() {
       <div className="flex flex-col gap-4">
         <div className="flex w-full items-center justify-center gap-1 rounded-lg bg-gray-900/50 p-1">
           <button
+            type="button"
             onClick={() => toggleCurrency("USD")}
             className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-all ${
               currency === "USD"
@@ -68,6 +68,7 @@ export function HistoryChart() {
             USD
           </button>
           <button
+            type="button"
             onClick={() => toggleCurrency("EUR")}
             className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-all ${
               currency === "EUR"
@@ -91,6 +92,7 @@ export function HistoryChart() {
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-center gap-1 rounded-lg bg-gray-900/50 p-1">
             <button
+              type="button"
               onClick={() => toggleCurrency("USD")}
               className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
                 currency === "USD"
@@ -101,6 +103,7 @@ export function HistoryChart() {
               USD
             </button>
             <button
+              type="button"
               onClick={() => toggleCurrency("EUR")}
               className={`rounded-md px-3 py-1 text-xs font-medium transition-all ${
                 currency === "EUR"
@@ -161,10 +164,7 @@ export function HistoryChart() {
                 color: "#fff",
               }}
               labelStyle={{ color: "#9ca3af", marginBottom: "0.25rem" }}
-              formatter={(value: any) => [
-                `Bs. ${Number(value).toFixed(2)}`,
-                "Rate",
-              ]}
+              formatter={(value) => [`Bs. ${Number(value).toFixed(2)}`, "Rate"]}
             />
             <Area
               type="monotone"
