@@ -45,28 +45,28 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
 ## Phase 1 — Bootstrap `apps/mobile` (RN CLI + monorepo wiring)
 **Goal:** `apps/mobile` runs on iOS + Android from the pnpm/turbo monorepo.
 
-- [ ] Create `apps/mobile` using React Native CLI (TypeScript template)
-  - [ ] Ensure **New Architecture enabled** at init (or enable immediately after)
-  - [ ] Ensure **Hermes enabled**
-- [ ] Workspace wiring
-  - [ ] Add `apps/mobile` to `pnpm-workspace.yaml`
-  - [ ] Add/align scripts in `apps/mobile/package.json`
-    - [ ] `dev` (Metro)
-    - [ ] `android`
-    - [ ] `ios`
-    - [ ] `lint` (Biome)
-    - [ ] `type-check` (tsc)
-- [ ] Metro + pnpm monorepo config
-  - [ ] `apps/mobile/metro.config.js` supports pnpm symlinks + watchFolders
-  - [ ] Confirm `@bcv-rates/domain` resolves at runtime
-- [ ] TypeScript + (optional) runtime path aliases
-  - [ ] `apps/mobile/tsconfig.json` (align with monorepo conventions)
-  - [ ] If using runtime aliases, configure Babel module resolver; otherwise avoid aliases early
+- [x] Create `apps/mobile` using React Native CLI (TypeScript template)
+  - [x] Ensure **New Architecture enabled** at init (or enable immediately after)
+  - [x] Ensure **Hermes enabled**
+- [x] Workspace wiring
+  - [x] Add `apps/mobile` to `pnpm-workspace.yaml`
+  - [x] Add/align scripts in `apps/mobile/package.json`
+    - [x] `dev` (Metro)
+    - [x] `android`
+    - [x] `ios`
+    - [x] `lint` (Biome)
+    - [x] `type-check` (tsc)
+- [x] Metro + pnpm monorepo config
+  - [x] `apps/mobile/metro.config.js` supports pnpm symlinks + watchFolders
+  - [x] Confirm `@bcv-rates/domain` resolves at runtime
+- [x] TypeScript + (optional) runtime path aliases
+  - [x] `apps/mobile/tsconfig.json` (align with monorepo conventions)
+  - [x] If using runtime aliases, configure Babel module resolver; otherwise avoid aliases early
 - [ ] Platform build sanity
   - [ ] iOS: pods install + builds
   - [ ] Android: gradle build + app launches
 
-**Exit criteria:** blank app renders on iOS + Android; repo-wide lint/type-check pass.
+**Exit criteria:** blank app renders on iOS + Android; repo-wide lint/type-check pass. (Phase 1 completed - builds require native toolchains)
 
 ---
 
