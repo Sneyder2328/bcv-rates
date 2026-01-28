@@ -20,11 +20,20 @@ export function HomeScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Home size={24} color="#2563eb" />
-        <Text style={styles.title}>BCV Rates</Text>
-        <Button variant="ghost" onPress={() => navigation.navigate("Settings")}>
-          <Settings size={24} color="#6b7280" />
-        </Button>
+        <View style={styles.headerLeft}>
+          <Home size={24} color="#2563eb" />
+        </View>
+        <View style={styles.headerCenter}>
+          <Text style={styles.title}>BCV Rates</Text>
+        </View>
+        <View style={styles.headerRight}>
+          <Button
+            variant="ghost"
+            onPress={() => navigation.navigate("Settings")}
+          >
+            <Settings size={24} color="#6b7280" />
+          </Button>
+        </View>
       </View>
 
       <View style={styles.content}>
@@ -68,12 +77,25 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
+  },
+  headerLeft: {
+    width: 48,
+    justifyContent: "center",
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerRight: {
+    width: 48,
+    alignItems: "flex-end",
+    justifyContent: "center",
   },
   title: {
     fontSize: 20,
