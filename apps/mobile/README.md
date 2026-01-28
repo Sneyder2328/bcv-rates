@@ -1,97 +1,152 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# BCV Rates Mobile App
 
-# Getting Started
+React Native mobile app for BCV exchange rates, part of the bcv-rates monorepo.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Prerequisites
 
-## Step 1: Start Metro
+- Node.js >= 20
+- pnpm (workspace package manager)
+- [React Native development environment](https://reactnative.dev/docs/set-up-your-environment)
+  - **iOS**: Xcode, CocoaPods, Ruby bundler
+  - **Android**: Android Studio, JDK 17+
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Installation
 
-To start the Metro dev server, run the following command from the root of your React Native project:
-
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
+From the **monorepo root**:
 
 ```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+# Install all dependencies
+pnpm install
 ```
 
-### iOS
+### Native Dependencies Setup
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+After `pnpm install`, you must link native dependencies:
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+#### iOS
 
 ```sh
-bundle install
+cd apps/mobile/ios
+bundle install          # First time only - installs CocoaPods
+bundle exec pod install # Every time native deps change
 ```
 
-Then, and every time you update your native dependencies, run:
+#### Android
+
+Native dependencies auto-link on Android. If you encounter issues:
 
 ```sh
-bundle exec pod install
+cd apps/mobile/android
+./gradlew clean
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+## Development
+
+From the **monorepo root**:
 
 ```sh
-# Using npm
-npm run ios
+# Start Metro bundler
+pnpm --filter @bcv-rates/mobile dev
 
-# OR using Yarn
-yarn ios
+# Or from apps/mobile directory
+pnpm dev
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+### Running on Device/Simulator
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+In a separate terminal:
 
-## Step 3: Modify your app
+```sh
+# iOS
+pnpm --filter @bcv-rates/mobile ios
 
-Now that you have successfully run the app, let's make changes!
+# Android
+pnpm --filter @bcv-rates/mobile android
+```
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+Or from `apps/mobile`:
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+```sh
+pnpm ios
+pnpm android
+```
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+## Project Structure
 
-## Congratulations! :tada:
+```
+apps/mobile/
+├── src/
+│   ├── App.tsx                 # Root app component
+│   ├── components/
+│   │   └── primitives/         # UI primitives (Button, Card, Input, etc.)
+│   ├── icons/                  # Icon exports from lucide-react-native
+│   ├── navigation/
+│   │   └── RootNavigator.tsx   # Navigation stack configuration
+│   ├── providers/              # Context providers (Auth, tRPC)
+│   └── screens/                # Screen components
+├── android/                    # Android native project
+├── ios/                        # iOS native project
+└── App.tsx                     # Entry point (re-exports src/App.tsx)
+```
 
-You've successfully run and modified your React Native App. :partying_face:
+## Available Scripts
 
-### Now what?
+| Script       | Description                          |
+|-------------|--------------------------------------|
+| `pnpm dev`  | Start Metro bundler                  |
+| `pnpm ios`  | Build and run on iOS                 |
+| `pnpm android` | Build and run on Android          |
+| `pnpm lint` | Run Biome linter                     |
+| `pnpm lint:fix` | Fix lint issues automatically    |
+| `pnpm type-check` | Run TypeScript type checking   |
+| `pnpm test` | Run Jest tests                       |
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+## Phase 2 Status
 
-# Troubleshooting
+This is Phase 2 of the mobile app implementation:
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+- [x] Navigation setup (@react-navigation/native-stack)
+- [x] Provider stubs (AuthProvider, TrpcProvider)
+- [x] UI primitives (Card, Button, Input, Label, SectionDivider, Banner)
+- [x] Icons (lucide-react-native + react-native-svg)
+- [x] Screen placeholders (Home, Settings, History, Auth modal)
+- [x] Toast notifications (react-native-toast-message)
 
-# Learn More
+### TODOs for Native Setup
 
-To learn more about React Native, take a look at the following resources:
+After cloning or updating dependencies:
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+1. **iOS**: Run `cd ios && bundle exec pod install`
+2. **Android**: Native deps auto-link; run `./gradlew clean` if issues occur
+3. **react-native-svg**: Required by lucide-react-native, needs native linking
+4. **react-native-screens**: Required by @react-navigation, needs native linking
+
+## Troubleshooting
+
+### Metro bundler issues
+
+```sh
+# Clear Metro cache
+pnpm dev --reset-cache
+```
+
+### iOS build issues
+
+```sh
+cd ios
+rm -rf Pods Podfile.lock
+bundle exec pod install --repo-update
+```
+
+### Android build issues
+
+```sh
+cd android
+./gradlew clean
+```
+
+## Learn More
+
+- [React Native docs](https://reactnative.dev/docs/getting-started)
+- [React Navigation docs](https://reactnavigation.org/docs/getting-started)
+- [Lucide Icons](https://lucide.dev/guide/packages/lucide-react-native)

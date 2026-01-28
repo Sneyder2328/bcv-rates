@@ -14,9 +14,15 @@
   "dependencies": {
     "@bcv-rates/domain": "workspace:*",
     "@react-native/new-app-screen": "0.83.1",
+    "@react-navigation/native": "^7.1.6",
+    "@react-navigation/native-stack": "^7.3.10",
+    "lucide-react-native": "^0.475.0",
     "react": "19.2.0",
     "react-native": "0.83.1",
-    "react-native-safe-area-context": "^5.5.2"
+    "react-native-safe-area-context": "^5.5.2",
+    "react-native-screens": "^4.10.0",
+    "react-native-svg": "^15.11.2",
+    "react-native-toast-message": "^2.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
