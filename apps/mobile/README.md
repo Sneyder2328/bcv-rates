@@ -91,15 +91,15 @@ apps/mobile/
 
 ## Available Scripts
 
-| Script       | Description                          |
-|-------------|--------------------------------------|
-| `pnpm dev`  | Start Metro bundler                  |
-| `pnpm ios`  | Build and run on iOS                 |
-| `pnpm android` | Build and run on Android          |
-| `pnpm lint` | Run Biome linter                     |
-| `pnpm lint:fix` | Fix lint issues automatically    |
-| `pnpm type-check` | Run TypeScript type checking   |
-| `pnpm test` | Run Jest tests                       |
+| Script          | Description                       |
+| --------------- | --------------------------------- |
+| `pnpm dev`      | Start Metro bundler               |
+| `pnpm ios`      | Build and run on iOS              |
+| `pnpm android`  | Build and run on Android          |
+| `pnpm lint`     | Run Biome linter                  |
+| `pnpm lint:fix` | Fix lint issues automatically     |
+| `pnpm type-check` | Run TypeScript type checking    |
+| `pnpm test`     | Run Jest tests                    |
 
 ## Phase 2 Status
 
