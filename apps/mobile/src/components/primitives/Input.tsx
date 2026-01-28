@@ -6,6 +6,7 @@ import {
   View,
   type ViewStyle,
 } from "react-native";
+import { useTheme } from "../../theme";
 
 interface InputProps extends TextInputProps {
   containerStyle?: ViewStyle;
@@ -19,11 +20,21 @@ export function Input({
   error = false,
   ...props
 }: InputProps) {
+  const { colors } = useTheme();
+
   return (
     <View style={[styles.container, containerStyle]}>
       <TextInput
-        style={[styles.input, error && styles.inputError, inputStyle]}
-        placeholderTextColor="#9ca3af"
+        style={[
+          styles.input,
+          {
+            backgroundColor: colors.inputBackground,
+            borderColor: error ? colors.borderError : colors.inputBorder,
+            color: colors.inputText,
+          },
+          inputStyle,
+        ]}
+        placeholderTextColor={colors.inputPlaceholder}
         {...props}
       />
     </View>
@@ -35,16 +46,10 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   input: {
-    backgroundColor: "#f9fafb",
     borderWidth: 1,
-    borderColor: "#e5e7eb",
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: "#111827",
-  },
-  inputError: {
-    borderColor: "#ef4444",
   },
 });

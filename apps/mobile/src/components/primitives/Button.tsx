@@ -6,6 +6,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native";
+import { useTheme } from "../../theme";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
 
@@ -26,13 +27,43 @@ export function Button({
   style,
   textStyle,
 }: ButtonProps) {
+  const { colors } = useTheme();
+
+  const variantStyles: Record<
+    ButtonVariant,
+    { container: ViewStyle; text: TextStyle }
+  > = {
+    primary: {
+      container: { backgroundColor: colors.primary },
+      text: { color: colors.primaryText },
+    },
+    secondary: {
+      container: { backgroundColor: colors.secondary },
+      text: { color: colors.secondaryText },
+    },
+    outline: {
+      container: {
+        backgroundColor: "transparent",
+        borderWidth: 1,
+        borderColor: colors.primary,
+      },
+      text: { color: colors.primary },
+    },
+    ghost: {
+      container: { backgroundColor: "transparent" },
+      text: { color: colors.primary },
+    },
+  };
+
+  const currentVariant = variantStyles[variant];
+
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
         styles.base,
-        styles[variant],
+        currentVariant.container,
         pressed && styles.pressed,
         disabled && styles.disabled,
         style,
@@ -41,8 +72,8 @@ export function Button({
       <Text
         style={[
           styles.text,
-          styles[`${variant}Text` as keyof typeof styles],
-          disabled && styles.disabledText,
+          currentVariant.text,
+          disabled && { color: colors.disabledText },
           textStyle,
         ]}
       >
@@ -60,20 +91,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  primary: {
-    backgroundColor: "#2563eb",
-  },
-  secondary: {
-    backgroundColor: "#64748b",
-  },
-  outline: {
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#2563eb",
-  },
-  ghost: {
-    backgroundColor: "transparent",
-  },
   pressed: {
     opacity: 0.8,
   },
@@ -83,20 +100,5 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     fontWeight: "600",
-  },
-  primaryText: {
-    color: "#ffffff",
-  },
-  secondaryText: {
-    color: "#ffffff",
-  },
-  outlineText: {
-    color: "#2563eb",
-  },
-  ghostText: {
-    color: "#2563eb",
-  },
-  disabledText: {
-    color: "#9ca3af",
   },
 });

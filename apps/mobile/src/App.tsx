@@ -4,18 +4,19 @@
  */
 
 import { NavigationContainer } from "@react-navigation/native";
-import { StatusBar, useColorScheme } from "react-native";
+import { StatusBar } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { RootNavigator } from "./navigation/RootNavigator";
 import { AuthProvider, TrpcProvider } from "./providers";
+import { ThemeProvider, useTheme } from "./theme";
 
-function App() {
-  const isDarkMode = useColorScheme() === "dark";
+function AppContent() {
+  const { isDark } = useTheme();
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+    <>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <TrpcProvider>
         <AuthProvider>
           <NavigationContainer>
@@ -24,6 +25,16 @@ function App() {
         </AuthProvider>
       </TrpcProvider>
       <Toast />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
