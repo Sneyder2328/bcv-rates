@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
 } from "react";
+import { setAuthToken } from "../lib/trpcClient";
 
 // TODO: Replace with actual Firebase user type when integrating auth
 interface User {
@@ -41,6 +42,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email: _email,
         displayName: null,
       });
+      // TODO: When Firebase auth is implemented, set the Bearer token here.
+      // For now, keep requests anonymous.
+      setAuthToken(undefined);
     } finally {
       setLoading(false);
     }
@@ -52,6 +56,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Stub: simulate sign out
       await new Promise<void>((resolve) => setTimeout(resolve, 200));
       setUser(null);
+      setAuthToken(undefined);
     } finally {
       setLoading(false);
     }

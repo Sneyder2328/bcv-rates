@@ -1,34 +1,22 @@
-import { createContext, type ReactNode, useContext } from "react";
-
-// TODO: Replace with actual tRPC client when integrating API
-// This is a stub provider for Phase 2 - will be implemented in Phase 3
+import { createContext, type ReactNode, useContext, useMemo } from "react";
+import { getTrpcClient, type TrpcClient } from "../lib/trpcClient";
 
 interface TrpcContextValue {
-  // Placeholder for tRPC client
-  client: null;
+  client: TrpcClient;
 }
 
 const TrpcContext = createContext<TrpcContextValue | null>(null);
 
-interface TrpcProviderProps {
-  children: ReactNode;
-}
-
-export function TrpcProvider({ children }: TrpcProviderProps) {
-  // TODO: Initialize actual tRPC client with React Query
-  // See apps/web/src/trpc for reference implementation
+export function TrpcProvider({ children }: { children: ReactNode }) {
+  const client = useMemo(() => getTrpcClient(), []);
 
   return (
-    <TrpcContext.Provider value={{ client: null }}>
-      {children}
-    </TrpcContext.Provider>
+    <TrpcContext.Provider value={{ client }}>{children}</TrpcContext.Provider>
   );
 }
 
 export function useTrpc() {
   const context = useContext(TrpcContext);
-  if (!context) {
-    throw new Error("useTrpc must be used within a TrpcProvider");
-  }
+  if (!context) throw new Error("useTrpc must be used within a TrpcProvider");
   return context;
 }
