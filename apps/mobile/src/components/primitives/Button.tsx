@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useMemo } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -6,7 +7,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native";
-import { useTheme } from "../../theme";
+import { type ThemeColors, useTheme } from "../../theme";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "ghost";
 
@@ -28,6 +29,7 @@ export function Button({
   textStyle,
 }: ButtonProps) {
   const { colors } = useTheme();
+  const styles = useMemo(() => getThemedStyles(colors), [colors]);
 
   const variantStyles: Record<
     ButtonVariant,
@@ -56,6 +58,7 @@ export function Button({
   };
 
   const currentVariant = variantStyles[variant];
+  const shouldWrapInText = typeof children === "string";
 
   return (
     <Pressable
@@ -69,36 +72,44 @@ export function Button({
         style,
       ]}
     >
-      <Text
-        style={[
-          styles.text,
-          currentVariant.text,
-          disabled && { color: colors.disabledText },
-          textStyle,
-        ]}
-      >
-        {children}
-      </Text>
+      {shouldWrapInText ? (
+        <Text
+          style={[
+            styles.text,
+            currentVariant.text,
+            disabled && styles.disabledText,
+            textStyle,
+          ]}
+        >
+          {children}
+        </Text>
+      ) : (
+        children
+      )}
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  pressed: {
-    opacity: 0.8,
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  text: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-});
+const getThemedStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    base: {
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    pressed: {
+      opacity: 0.8,
+    },
+    disabled: {
+      opacity: 0.5,
+    },
+    disabledText: {
+      color: colors.disabledText,
+    },
+    text: {
+      fontSize: 16,
+      fontWeight: "600",
+    },
+  });

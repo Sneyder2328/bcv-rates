@@ -7,7 +7,7 @@ export interface ThemeColors {
   // Backgrounds
   background: string;
   backgroundSecondary: string;
-  card: string;
+  cardBackground: string;
   cardShadow: string;
 
   // Text
@@ -50,7 +50,7 @@ export const lightColors: ThemeColors = {
   // Backgrounds
   background: "#f9fafb", // gray-50
   backgroundSecondary: "#ffffff",
-  card: "#ffffff",
+  cardBackground: "#ffffff",
   cardShadow: "#000000",
 
   // Text
@@ -93,7 +93,7 @@ export const darkColors: ThemeColors = {
   // Backgrounds
   background: "#111827", // gray-900
   backgroundSecondary: "#1f2937", // gray-800
-  card: "#1f2937", // gray-800
+  cardBackground: "#1f2937", // gray-800
   cardShadow: "#000000",
 
   // Text

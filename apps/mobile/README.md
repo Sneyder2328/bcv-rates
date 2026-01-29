@@ -91,15 +91,15 @@ apps/mobile/
 
 ## Available Scripts
 
-| Script          | Description                       |
-| --------------- | --------------------------------- |
-| `pnpm dev`      | Start Metro bundler               |
-| `pnpm ios`      | Build and run on iOS              |
-| `pnpm android`  | Build and run on Android          |
-| `pnpm lint`     | Run Biome linter                  |
-| `pnpm lint:fix` | Fix lint issues automatically     |
+| Script            | Description                     |
+| ----------------- | ------------------------------- |
+| `pnpm dev`        | Start Metro bundler             |
+| `pnpm ios`        | Build and run on iOS            |
+| `pnpm android`    | Build and run on Android        |
+| `pnpm lint`       | Run Biome linter                |
+| `pnpm lint:fix`   | Fix lint issues automatically   |
 | `pnpm type-check` | Run TypeScript type checking    |
-| `pnpm test`     | Run Jest tests                    |
+| `pnpm test`       | Run Jest tests                  |
 
 ## Phase 2 Status
 
@@ -111,15 +111,6 @@ This is Phase 2 of the mobile app implementation:
 - [x] Icons (lucide-react-native + react-native-svg)
 - [x] Screen placeholders (Home, Settings, History, Auth modal)
 - [x] Toast notifications (react-native-toast-message)
-
-### TODOs for Native Setup
-
-After cloning or updating dependencies:
-
-1. **iOS**: Run `cd ios && bundle exec pod install`
-2. **Android**: Native deps auto-link; run `./gradlew clean` if issues occur
-3. **react-native-svg**: Required by lucide-react-native, needs native linking
-4. **react-native-screens**: Required by @react-navigation, needs native linking
 
 ## Troubleshooting
 

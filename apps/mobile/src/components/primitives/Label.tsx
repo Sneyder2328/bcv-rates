@@ -1,25 +1,26 @@
+import type { ReactNode } from "react";
+import { useMemo } from "react";
 import { StyleSheet, Text, type TextStyle } from "react-native";
-import { useTheme } from "../../theme";
+import { type ThemeColors, useTheme } from "../../theme";
 
 interface LabelProps {
-  children: string;
+  children: ReactNode;
   style?: TextStyle;
 }
 
 export function Label({ children, style }: LabelProps) {
   const { colors } = useTheme();
+  const styles = useMemo(() => getThemedStyles(colors), [colors]);
 
-  return (
-    <Text style={[styles.label, { color: colors.textSecondary }, style]}>
-      {children}
-    </Text>
-  );
+  return <Text style={[styles.label, style]}>{children}</Text>;
 }
 
-const styles = StyleSheet.create({
-  label: {
-    fontSize: 14,
-    fontWeight: "500",
-    marginBottom: 4,
-  },
-});
+const getThemedStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    label: {
+      color: colors.textSecondary,
+      fontSize: 14,
+      fontWeight: "500",
+      marginBottom: 4,
+    },
+  });

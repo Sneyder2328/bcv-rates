@@ -1,4 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
@@ -6,12 +7,15 @@ import { Button, Card } from "../components/primitives";
 import { useExchangeRates } from "../hooks/useExchangeRates";
 import { Home, Settings } from "../icons";
 import type { RootStackParamList } from "../navigation/RootNavigator";
+import { type ThemeColors, useTheme } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
 export function HomeScreen({ navigation }: Props) {
   const { rates, statusLine, syncingRates, lastUpdated, isOnline } =
     useExchangeRates();
+  const { colors } = useTheme();
+  const styles = useMemo(() => getThemedStyles(colors), [colors]);
 
   const showTestToast = () => {
     Toast.show({
@@ -25,7 +29,7 @@ export function HomeScreen({ navigation }: Props) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Home size={24} color="#2563eb" />
+          <Home size={24} color={colors.primary} />
         </View>
         <View style={styles.headerCenter}>
           <Text style={styles.title}>BCV Rates</Text>
@@ -35,7 +39,7 @@ export function HomeScreen({ navigation }: Props) {
             variant="ghost"
             onPress={() => navigation.navigate("Settings")}
           >
-            <Settings size={24} color="#6b7280" />
+            <Settings size={24} color={colors.textMuted} />
           </Button>
         </View>
       </View>
@@ -87,74 +91,75 @@ export function HomeScreen({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  headerLeft: {
-    width: 48,
-    justifyContent: "center",
-  },
-  headerCenter: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerRight: {
-    width: 48,
-    alignItems: "flex-end",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#111827",
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  card: {
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
-    marginBottom: 8,
-  },
-  placeholder: {
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  rateLine: {
-    fontSize: 16,
-    color: "#111827",
-    marginTop: 6,
-  },
-  metaLine: {
-    fontSize: 12,
-    color: "#6b7280",
-    marginTop: 8,
-  },
-  toastButton: {
-    marginBottom: 24,
-  },
-  navButtons: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  navButton: {
-    flex: 1,
-  },
-});
+const getThemedStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: colors.backgroundSecondary,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerLeft: {
+      width: 48,
+      justifyContent: "center",
+    },
+    headerCenter: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerRight: {
+      width: 48,
+      alignItems: "flex-end",
+      justifyContent: "center",
+    },
+    title: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: colors.text,
+    },
+    content: {
+      flex: 1,
+      padding: 16,
+    },
+    card: {
+      marginBottom: 16,
+    },
+    cardTitle: {
+      fontSize: 18,
+      fontWeight: "600",
+      color: colors.text,
+      marginBottom: 8,
+    },
+    placeholder: {
+      fontSize: 14,
+      color: colors.textMuted,
+    },
+    rateLine: {
+      fontSize: 16,
+      color: colors.text,
+      marginTop: 6,
+    },
+    metaLine: {
+      fontSize: 12,
+      color: colors.textMuted,
+      marginTop: 8,
+    },
+    toastButton: {
+      marginBottom: 24,
+    },
+    navButtons: {
+      flexDirection: "row",
+      gap: 12,
+    },
+    navButton: {
+      flex: 1,
+    },
+  });

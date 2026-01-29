@@ -1,7 +1,4 @@
-import NetInfo, {
-  type NetInfoState,
-  useNetInfo,
-} from "@react-native-community/netinfo";
+import { type NetInfoState, useNetInfo } from "@react-native-community/netinfo";
 import { onlineManager } from "@tanstack/react-query";
 import {
   createContext,
@@ -32,15 +29,6 @@ export function OnlineStatusProvider({ children }: { children: ReactNode }) {
     // Bridge React Query's onlineManager to React Native's NetInfo.
     onlineManager.setOnline(isOnline);
   }, [isOnline]);
-
-  useEffect(() => {
-    // Keep onlineManager updated even if nobody consumes this context,
-    // and ensure we unsubscribe on unmount.
-    const unsubscribe = NetInfo.addEventListener((state: NetInfoState) => {
-      onlineManager.setOnline(deriveIsOnline(state));
-    });
-    return unsubscribe;
-  }, []);
 
   return createElement(
     OnlineStatusContext.Provider,
