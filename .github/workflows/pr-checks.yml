@@ -35,6 +35,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma client (API)
+        run: pnpm --filter @bcv-rates/api db:generate
+        env:
+          # Only used for Prisma config evaluation during `prisma generate` in CI.
+          # Prisma Client generation does not connect to the database.
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres?schema=public
+
       - name: Lint
         run: pnpm lint
 
