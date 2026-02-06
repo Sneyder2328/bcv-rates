@@ -111,6 +111,10 @@ jobs:
             pnpm --filter @bcv-rates/api db:migrate:deploy
             echo "✓ Migrations applied"
 
+            echo "→ Building shared packages..."
+            pnpm --filter @bcv-rates/domain build
+            echo "✓ Shared packages built"
+
             echo "→ Building API..."
             pnpm --filter @bcv-rates/api build
             echo "✓ API built"
