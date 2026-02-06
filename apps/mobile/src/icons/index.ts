@@ -10,6 +10,8 @@ export {
   History,
   Home,
   Loader,
+  LogOut,
+  Mail,
   RefreshCw,
   Settings,
   User,

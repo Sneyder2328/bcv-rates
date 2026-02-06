@@ -88,6 +88,116 @@ APP_BASE_NAME=${0##*/}
 # Discard cd standard output in case $CDPATH is set (https://github.com/gradle/gradle/issues/25036)
 APP_HOME=$( cd -P "${APP_HOME:-./}" > /dev/null && printf '%s\n' "$PWD" ) || exit
 
+# ------------------------------------------------------------------------------
+# Ensure `node` is available on PATH for Gradle.
+#
+# Android Studio (GUI) often starts Gradle with a minimal PATH that doesn't
+# include Node (especially when Node is installed via nvm/volta/asdf). Several
+# React Native libraries execute `node` at configuration time, so failing to find
+# it breaks Gradle sync/builds.
+#
+# This block tries to locate a node binary in common locations and prepends its
+# bin directory to PATH (and exports NODE_BINARY) before the JVM starts.
+# ------------------------------------------------------------------------------
+if ! command -v node >/dev/null 2>&1 ; then
+    find_node_bin () {
+        # Respect an explicit NODE_BINARY if provided.
+        if [ -n "${NODE_BINARY:-}" ] && [ -x "$NODE_BINARY" ] ; then
+            printf '%s\n' "$NODE_BINARY"
+            return 0
+        fi
+
+        # Prefer a project-specified .nvmrc if present (apps/mobile or repo root).
+        for nvmrc in "$APP_HOME/../.nvmrc" "$APP_HOME/../../.nvmrc" ; do
+            if [ -f "$nvmrc" ] ; then
+                ver=$( tr -d '[:space:]' < "$nvmrc" 2>/dev/null )
+                if [ -n "$ver" ] ; then
+                    case "$ver" in
+                      v*) prefix="$ver" ;;
+                      *)  prefix="v$ver" ;;
+                    esac
+
+                    if [ -x "$HOME/.nvm/versions/node/$prefix/bin/node" ] ; then
+                        printf '%s\n' "$HOME/.nvm/versions/node/$prefix/bin/node"
+                        return 0
+                    fi
+
+                    found=""
+                    for nodebin in "$HOME/.nvm/versions/node/$prefix"*/bin/node ; do
+                        if [ -x "$nodebin" ] ; then
+                            found="$nodebin"
+                        fi
+                    done
+                    if [ -n "$found" ] ; then
+                        printf '%s\n' "$found"
+                        return 0
+                    fi
+                fi
+            fi
+        done
+
+        # nvm default alias (often "22", "lts/*", or an exact version).
+        if [ -f "$HOME/.nvm/alias/default" ] ; then
+            alias_ver=$( tr -d '[:space:]' < "$HOME/.nvm/alias/default" 2>/dev/null )
+            if [ -n "$alias_ver" ] ; then
+                found=""
+                case "$alias_ver" in
+                  v*) pattern="$HOME/.nvm/versions/node/$alias_ver"*/bin/node ;;
+                  *)  pattern="$HOME/.nvm/versions/node/v$alias_ver"*/bin/node ;;
+                esac
+                # word splitting is intentional here to expand $pattern
+                # shellcheck disable=SC2086
+                for nodebin in $pattern ; do
+                    if [ -x "$nodebin" ] ; then
+                        found="$nodebin"
+                    fi
+                done
+                if [ -n "$found" ] ; then
+                    printf '%s\n' "$found"
+                    return 0
+                fi
+            fi
+        fi
+
+        # Any nvm-installed node (pick the last match).
+        found=""
+        for nodebin in "$HOME/.nvm/versions/node/"*/bin/node ; do
+            if [ -x "$nodebin" ] ; then
+                found="$nodebin"
+            fi
+        done
+        if [ -n "$found" ] ; then
+            printf '%s\n' "$found"
+            return 0
+        fi
+
+        # Volta.
+        if [ -x "$HOME/.volta/bin/node" ] ; then
+            printf '%s\n' "$HOME/.volta/bin/node"
+            return 0
+        fi
+
+        # Common system locations (Homebrew + others).
+        for nodebin in /opt/homebrew/bin/node /usr/local/bin/node /usr/bin/node /bin/node ; do
+            if [ -x "$nodebin" ] ; then
+                printf '%s\n' "$nodebin"
+                return 0
+            fi
+        done
+
+        return 1
+    }
+
+    node_bin=$( find_node_bin ) || node_bin=""
+    if [ -n "$node_bin" ] ; then
+        NODE_BINARY="$node_bin"
+        export NODE_BINARY
+        node_bin_dir=${node_bin%/node}
+        PATH="$node_bin_dir:$PATH"
+        export PATH
+    fi
+fi
+
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD=maximum
 

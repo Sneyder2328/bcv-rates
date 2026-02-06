@@ -18,4 +18,14 @@ buildscript {
     }
 }
 
+// Some RN libraries (e.g. react-native-svg) try to resolve React Native by running `node`
+// at configuration time, which fails when Android Studio/Gradle doesn't have node on PATH.
+// In monorepos (pnpm/yarn workspaces), we can point directly to the react-native package dir.
+def reactNativeDir = file("../node_modules/react-native")
+if (!reactNativeDir.exists()) {
+    // Fallback for setups where node_modules are hoisted to the repo root.
+    reactNativeDir = file("../../node_modules/react-native")
+}
+ext.REACT_NATIVE_NODE_MODULES_DIR = reactNativeDir
+
 apply plugin: "com.facebook.react.rootproject"

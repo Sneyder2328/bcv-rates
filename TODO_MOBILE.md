@@ -133,50 +133,53 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
 ## Phase 4 — Converter parity (VES ⇄ USD/EUR + custom rate)
 **Goal:** input behavior and formatting match web; mobile keyboard UX is solid.
 
-- [ ] Reuse domain helpers
-  - [ ] Use `@bcv-rates/domain` for parsing/formatting/conversion
-- [ ] Implement RN components
-  - [ ] `CurrencyInput` (VES, USD, EUR)
-  - [ ] `CustomRateInput`
-  - [ ] Proper keyboard types (`decimal-pad`), selection behavior, and caret stability
-- [ ] Converter hook/logic
-  - [ ] Match web's "update one field updates others" semantics
-  - [ ] Handle edge cases: empty input, leading decimals, comma vs dot
+- [x] Reuse domain helpers
+  - [x] Use `@bcv-rates/domain` for `parseAmount`, `formatAmount`, `formatRate`, `vesToForeign`, `foreignToVes`
+- [x] Implement RN components
+  - [x] `CurrencyInput` (VES, USD, EUR) — `decimal-pad`, symbol overlay, exchange rate hint, `selectTextOnFocus`
+  - [x] `CustomRateInput` — rate + amount fields with formatted rate display
+  - [x] Proper keyboard types (`decimal-pad`), selection behavior, and caret stability
+- [x] Converter hook/logic
+  - [x] `useCurrencyConverter` ported from web (identical semantics, no analytics yet)
+  - [x] Match web's "update one field updates others" semantics
+  - [x] Handle edge cases: empty input, leading decimals, comma vs dot (via `parseAmount`)
 - [ ] Intl/formatting verification
-  - [ ] Validate `Intl.NumberFormat` on Hermes Android
+  - [ ] Validate `Intl.NumberFormat` on Hermes Android (requires device testing)
   - [ ] If inconsistent, implement deterministic fallback formatter in domain package
 
-**Exit criteria:** typing is responsive; results match web for the same inputs.
+**Exit criteria:** typing is responsive; results match web for the same inputs. (Phase 4 completed — Intl verification pending device testing)
 
 ---
 
 ## Phase 5 — Auth parity (Firebase native: Google + email/password)
 **Goal:** stable auth across restarts; authenticated calls work.
 
-- [ ] Firebase native setup
-  - [ ] Install `@react-native-firebase/app` + `@react-native-firebase/auth`
-  - [ ] Add Firebase config files
-    - [ ] Android: `google-services.json`
-    - [ ] iOS: `GoogleService-Info.plist`
-  - [ ] Ensure build passes on both platforms
-- [ ] Google Sign-In
-  - [ ] Install `@react-native-google-signin/google-signin`
-  - [ ] Configure iOS URL scheme / reversed client id
-  - [ ] Configure Android (SHA-1/SHA-256 if required)
-- [ ] Implement `AuthProvider` API
-  - [ ] `user`, `loading`
-  - [ ] `signInWithGoogle`
-  - [ ] `signInWithEmailPassword`
-  - [ ] `signUpWithEmailPassword`
-  - [ ] `signOut`
-- [ ] Auth UI
-  - [ ] Auth modal with Google + email/password flows
-  - [ ] Toast success/failure mapping
-- [ ] Wire auth into tRPC headers
-  - [ ] Token fetch/refresh behavior (getIdToken)
-  - [ ] On sign-out: clear/segregate user-scoped caches as needed
+- [x] Firebase native setup
+  - [x] Install `@react-native-firebase/app` + `@react-native-firebase/auth` *(added to package.json)*
+  - [ ] Add Firebase config files *(requires project credentials from Firebase console)*
+    - [ ] Android: `google-services.json` → `apps/mobile/android/app/`
+    - [ ] iOS: `GoogleService-Info.plist` → `apps/mobile/ios/BcvRates/`
+  - [ ] Ensure build passes on both platforms *(blocked on config files above)*
+- [x] Google Sign-In
+  - [x] Install `@react-native-google-signin/google-signin` v16 *(Original API: `GoogleSignin`)*
+  - [ ] Configure iOS URL scheme / reversed client id *(requires GoogleService-Info.plist)*
+  - [ ] Configure Android (SHA-1/SHA-256 if required) *(requires google-services.json)*
+- [x] Implement `AuthProvider` API
+  - [x] `user`, `loading` — `onAuthStateChanged` listener, `AuthUser` type
+  - [x] `signInWithGoogle` — `GoogleSignin.signIn()` → Firebase `signInWithCredential`
+  - [x] `signInWithEmailPassword` — `auth().signInWithEmailAndPassword`
+  - [x] `signUpWithEmailPassword` — `auth().createUserWithEmailAndPassword`
+  - [x] `signOut` — `auth().signOut()` + `GoogleSignin.signOut()` + clear token + remove user-scoped caches
+- [x] Auth UI
+  - [x] Auth modal with Google + email/password flows *(AuthModal: login/signup toggle, form validation)*
+  - [x] Toast success/failure mapping *(react-native-toast-message + `authErrors.ts` for Spanish error messages)*
+  - [x] HomeScreen user section: displays user info when signed in, sign-out button, or "Iniciar sesión" when not
+- [x] Wire auth into tRPC headers
+  - [x] Token fetch/refresh behavior (`onIdTokenChanged` → `syncToken` → `setAuthToken` on every refresh)
+  - [x] On sign-out: clear/segregate user-scoped caches (`queryClient.removeQueries({ queryKey: ["customRates"] })`)
 
 **Exit criteria:** user can sign in/out; authenticated endpoints succeed; auth persists after restart.
+*(Phase 5 code complete — native config files (google-services.json / GoogleService-Info.plist) still required for runtime testing)*
 
 ---
 
