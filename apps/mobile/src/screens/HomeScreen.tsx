@@ -1,29 +1,26 @@
+import { formatRate } from "@bcv-rates/domain";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
-import { Button, Card } from "../components/primitives";
+import { Banner, Button, Card } from "../components/primitives";
 import { useExchangeRates } from "../hooks/useExchangeRates";
-import { Home, Settings } from "../icons";
+import { AlertTriangle, Home, Settings, WifiOff } from "../icons";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import { type ThemeColors, useTheme } from "../theme";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
 export function HomeScreen({ navigation }: Props) {
-  const { rates, statusLine, syncingRates, lastUpdated, isOnline } =
+  const { rates, statusLine, syncingRates, isOnline, isLoading, error } =
     useExchangeRates();
   const { colors } = useTheme();
   const styles = useMemo(() => getThemedStyles(colors), [colors]);
 
-  const showTestToast = () => {
-    Toast.show({
-      type: "success",
-      text1: "Toast Test",
-      text2: "Toast message is working correctly!",
-    });
-  };
+  // Determine which banner to show (if any)
+  const offlineBanner = !isOnline && rates;
+  const offlineNoCacheBanner = !isOnline && !rates && !isLoading;
+  const errorWithCacheBanner = isOnline && error && rates;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -45,30 +42,94 @@ export function HomeScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.content}>
-        <Card style={styles.card}>
-          <Text style={styles.cardTitle}>Exchange Rate</Text>
-          {statusLine ? (
-            <Text style={styles.placeholder}>{statusLine}</Text>
-          ) : null}
-          <Text style={styles.rateLine}>
-            USD: {rates ? String(rates.usd) : "—"}
-          </Text>
-          <Text style={styles.rateLine}>
-            EUR: {rates ? String(rates.eur) : "—"}
-          </Text>
-          <Text style={styles.metaLine}>
-            {syncingRates
-              ? "Actualizando…"
-              : isOnline
-                ? "En línea"
-                : "Sin conexión"}
-            {lastUpdated ? ` · Cache: ${lastUpdated}` : ""}
-          </Text>
-        </Card>
+        {/* Offline banner: has cached rates */}
+        {offlineBanner ? (
+          <Banner variant="warning" style={styles.banner}>
+            <View style={styles.bannerRow}>
+              <WifiOff size={16} color={colors.bannerWarning.text} />
+              <Text
+                style={[
+                  styles.bannerText,
+                  { color: colors.bannerWarning.text },
+                ]}
+              >
+                Sin conexión — mostrando tasas guardadas
+              </Text>
+            </View>
+          </Banner>
+        ) : null}
 
-        <Button onPress={showTestToast} style={styles.toastButton}>
-          Test Toast Message
-        </Button>
+        {/* Offline banner: no cached rates at all */}
+        {offlineNoCacheBanner ? (
+          <Banner variant="error" style={styles.banner}>
+            <View style={styles.bannerRow}>
+              <WifiOff size={16} color={colors.bannerError.text} />
+              <Text
+                style={[styles.bannerText, { color: colors.bannerError.text }]}
+              >
+                Sin conexión. Abre la app una vez con internet para guardar las
+                tasas.
+              </Text>
+            </View>
+          </Banner>
+        ) : null}
+
+        {/* Error banner: online error but we still have cached rates */}
+        {errorWithCacheBanner ? (
+          <Banner variant="warning" style={styles.banner}>
+            <View style={styles.bannerRow}>
+              <AlertTriangle size={16} color={colors.bannerWarning.text} />
+              <Text
+                style={[
+                  styles.bannerText,
+                  { color: colors.bannerWarning.text },
+                ]}
+              >
+                Error al actualizar — mostrando tasas guardadas
+              </Text>
+            </View>
+          </Banner>
+        ) : null}
+
+        <Card style={styles.card}>
+          {/* Status line / date */}
+          <View style={styles.statusRow}>
+            {syncingRates ? (
+              <ActivityIndicator
+                size="small"
+                color={colors.textMuted}
+                style={styles.spinner}
+              />
+            ) : null}
+            {statusLine ? (
+              <Text style={styles.statusText}>{statusLine}</Text>
+            ) : null}
+          </View>
+
+          {/* Rate display */}
+          {rates ? (
+            <View style={styles.ratesContainer}>
+              <View style={styles.rateRow}>
+                <Text style={styles.rateLabel}>USD</Text>
+                <Text style={styles.rateValue}>
+                  Bs. {formatRate(rates.usd)}
+                </Text>
+              </View>
+              <View style={styles.rateDivider} />
+              <View style={styles.rateRow}>
+                <Text style={styles.rateLabel}>EUR</Text>
+                <Text style={styles.rateValue}>
+                  Bs. {formatRate(rates.eur)}
+                </Text>
+              </View>
+            </View>
+          ) : isLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={styles.loadingText}>Cargando tasas…</Text>
+            </View>
+          ) : null}
+        </Card>
 
         <View style={styles.navButtons}>
           <Button
@@ -129,31 +190,66 @@ const getThemedStyles = (colors: ThemeColors) =>
       flex: 1,
       padding: 16,
     },
+    banner: {
+      marginBottom: 12,
+    },
+    bannerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    bannerText: {
+      fontSize: 14,
+      fontWeight: "500",
+      flex: 1,
+    },
     card: {
       marginBottom: 16,
     },
-    cardTitle: {
-      fontSize: 18,
-      fontWeight: "600",
-      color: colors.text,
-      marginBottom: 8,
+    statusRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 12,
     },
-    placeholder: {
+    spinner: {
+      marginRight: 8,
+    },
+    statusText: {
       fontSize: 14,
       color: colors.textMuted,
     },
-    rateLine: {
+    ratesContainer: {
+      gap: 4,
+    },
+    rateRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 8,
+    },
+    rateLabel: {
       fontSize: 16,
+      fontWeight: "600",
+      color: colors.textSecondary,
+    },
+    rateValue: {
+      fontSize: 18,
+      fontWeight: "700",
       color: colors.text,
-      marginTop: 6,
     },
-    metaLine: {
-      fontSize: 12,
+    rateDivider: {
+      height: 1,
+      backgroundColor: colors.divider,
+    },
+    loadingContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 24,
+      gap: 12,
+    },
+    loadingText: {
+      fontSize: 14,
       color: colors.textMuted,
-      marginTop: 8,
-    },
-    toastButton: {
-      marginBottom: 24,
     },
     navButtons: {
       flexDirection: "row",

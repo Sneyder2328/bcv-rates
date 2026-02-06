@@ -31,7 +31,7 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
 - [x] Package wiring
   - [x] `packages/domain/package.json` (name: `@bcv-rates/domain`)
   - [x] `packages/domain/tsconfig.json`
-  - [x] Add to turbo tasks (`lint`, `type-check`)
+  - [x] Add `lint` + `type-check` scripts to `packages/domain` so `turbo lint/type-check` runs it
 - [x] Migrate `apps/web` to use `@bcv-rates/domain`
   - [x] Replace formatter imports
   - [x] Replace conversion logic usage
@@ -107,26 +107,26 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
 ## Phase 3 — Data layer parity (tRPC + React Query + persistence + offline)
 **Goal:** rates load, persist 30 days, and render offline after first successful load.
 
-- [ ] Online/offline detection
-  - [ ] Install `@react-native-community/netinfo`
-  - [ ] Implement `useOnlineStatus()`
-- [ ] React Query setup
-  - [ ] Configure QueryClient defaults (match web intent)
-  - [ ] Persist QueryClient to AsyncStorage
-    - [ ] Install `@react-native-async-storage/async-storage`
-    - [ ] Install `@tanstack/query-async-storage-persister` (or implement custom)
-    - [ ] Persistence maxAge: **30 days**
-  - [ ] Implement “persist only selected queries” (respect `meta.persist === true` like web)
-- [ ] tRPC client
-  - [ ] Configure `httpBatchLink` → `${API_BASE_URL}/api/trpc`
-  - [ ] Attach Firebase ID token in `Authorization` header when signed in
-  - [ ] Ensure type-only imports from `apps/api/src/trpc/app-router.type.ts`
-- [ ] `useExchangeRates` parity
-  - [ ] Implement `exchangeRates.getLatest` query
-  - [ ] Surface: `rates`, `statusLine`, `syncingRates`, `lastUpdated` (if possible)
-  - [ ] UI: show offline banner + “showing cached rates” messaging
+- [x] Online/offline detection
+  - [x] Install `@react-native-community/netinfo`
+  - [x] Implement `useOnlineStatus()` (and bridge React Query `onlineManager`)
+- [x] React Query setup
+  - [x] Configure QueryClient defaults (QueryProvider)
+  - [x] Persist QueryClient to AsyncStorage
+    - [x] Install `@react-native-async-storage/async-storage`
+    - [x] Install `@tanstack/query-async-storage-persister` (or implement custom)
+    - [x] Persistence maxAge: **30 days**
+  - [x] Implement "persist only selected queries" (respect `meta.persist === true` like web)
+- [x] tRPC client
+  - [x] Configure `httpBatchLink` → `${API_BASE_URL}/api/trpc`
+  - [x] Attach auth token in `Authorization` header via `setAuthToken` (actual Firebase token comes in Phase 5)
+  - [x] Ensure type-only imports from `apps/api/src/trpc/app-router.type.ts`
+- [x] `useExchangeRates` parity
+  - [x] Implement `exchangeRates.getLatest` query
+  - [x] Surface: `rates`, `statusLine`, `syncingRates`, `lastUpdated`
+  - [x] UI: offline/error `Banner` with contextual messaging + `formatRate` from `@bcv-rates/domain`
 
-**Exit criteria:** kill the app → relaunch offline → still see rates if previously loaded.
+**Exit criteria:** kill the app → relaunch offline → still see rates if previously loaded. (Phase 3 completed)
 
 ---
 
@@ -140,7 +140,7 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
   - [ ] `CustomRateInput`
   - [ ] Proper keyboard types (`decimal-pad`), selection behavior, and caret stability
 - [ ] Converter hook/logic
-  - [ ] Match web’s “update one field updates others” semantics
+  - [ ] Match web's "update one field updates others" semantics
   - [ ] Handle edge cases: empty input, leading decimals, comma vs dot
 - [ ] Intl/formatting verification
   - [ ] Validate `Intl.NumberFormat` on Hermes Android
@@ -189,7 +189,7 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
   - [ ] Invalidate list on mutation success
 - [ ] Offline behavior
   - [ ] When offline: disable CRUD controls
-  - [ ] Banner: “Offline — read-only”
+  - [ ] Banner: "Offline — read-only"
   - [ ] Still render cached list for last signed-in user
 - [ ] Settings screen
   - [ ] List view (edit flow: inline or separate)
@@ -219,7 +219,7 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
   - [ ] Memoize series transformations
   - [ ] Avoid unnecessary re-renders
 
-**Exit criteria:** chart loads correctly and interactions don’t jank on mid-range Android.
+**Exit criteria:** chart loads correctly and interactions don't jank on mid-range Android.
 
 ---
 
@@ -254,12 +254,12 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
   - [ ] `UMAMI_ENABLED`
   - [ ] `UMAMI_HOST` (or full endpoint)
   - [ ] `UMAMI_WEBSITE_ID`
-- [ ] `getApiBaseUrl()`
-  - [ ] Android emulator default: `http://10.0.2.2:<port>`
-  - [ ] iOS simulator default: `http://localhost:<port>`
-  - [ ] Physical devices: require override (LAN IP/public dev URL)
+- [x] `getApiBaseUrl()` (implemented; currently infers host from Metro bundle URL and/or `API_BASE_URL` when available)
+  - [ ] Android emulator default: `http://10.0.2.2:<port>` (verify behavior vs `adb reverse` / bundle host inference)
+  - [ ] iOS simulator default: `http://localhost:<port>` (verify)
+  - [ ] Physical devices: require override (LAN IP/public dev URL) (document)
 - [ ] Misconfiguration UX
-  - [ ] Dev-only “missing config” screen with actionable instructions
+  - [ ] Dev-only "missing config" screen with actionable instructions
 
 **Exit criteria:** app can hit local API from emulator/simulator and from a physical device with minimal friction.
 
@@ -281,7 +281,7 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
   - [ ] `apps/mobile/README.md` includes:
     - [ ] monorepo Metro notes
     - [ ] env setup
-    - [ ] running on devices
+    - [x] running on devices
     - [ ] Firebase/Google sign-in setup checklist
 
 **Exit criteria:** can produce a releasable build; onboarding is documented.
@@ -297,8 +297,8 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
   - [ ] Can manage custom rates online; can view cached custom rates offline (read-only)
   - [ ] Can view historical chart online with clear states
 - Repo health
-  - [ ] `pnpm lint` and `pnpm type-check` pass monorepo-wide
-  - [ ] `apps/mobile` works under pnpm workspaces + turbo
+  - [x] `pnpm lint` and `pnpm type-check` pass monorepo-wide (verified)
+  - [x] `apps/mobile` works under pnpm workspaces + turbo (verified for lint/type-check)
 
 ---
 
