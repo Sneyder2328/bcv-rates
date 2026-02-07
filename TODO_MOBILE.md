@@ -62,27 +62,27 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
 ## Phase 2 — App skeleton + UI foundation
 **Goal:** navigation routes exist; base UI components exist; providers wired.
 
-- [ ] Expo Router screens
-  - [ ] `app/_layout.tsx` — root layout with providers + theme
-  - [ ] `app/index.tsx` — Home screen
-  - [ ] `app/settings.tsx` — Settings screen
-  - [ ] `app/history.tsx` — History screen
-  - [ ] `app/auth.tsx` — Auth modal
-- [ ] Theme system
-  - [ ] Light/dark mode support (automatic via `useColorScheme`)
-  - [ ] `ThemeProvider` + `useTheme` hook
-  - [ ] Color palette matching web (Tailwind-based)
-- [ ] UI primitives (StyleSheet)
-  - [ ] `Card`
-  - [ ] `Button`
-  - [ ] `Input`
-  - [ ] `Label`
-  - [ ] `SectionDivider`
-  - [ ] `Banner` (offline/error/warning)
-- [ ] Icons
-  - [ ] `lucide-react-native` + `react-native-svg`
-  - [ ] Per-icon imports for tree-shaking
-- [ ] Toast provider (`react-native-toast-message`)
+- [x] Expo Router screens
+  - [x] `app/_layout.tsx` — root layout with providers + theme
+  - [x] `app/index.tsx` — Home screen
+  - [x] `app/settings.tsx` — Settings screen
+  - [x] `app/history.tsx` — History screen
+  - [x] `app/auth.tsx` — Auth modal
+- [x] Theme system
+  - [x] Light/dark mode support (automatic via `useColorScheme`)
+  - [x] `ThemeProvider` + `useTheme` hook
+  - [x] Color palette matching web (Tailwind-based)
+- [x] UI primitives (StyleSheet)
+  - [x] `Card`
+  - [x] `Button`
+  - [x] `Input`
+  - [x] `Label`
+  - [x] `SectionDivider`
+  - [x] `Banner` (offline/error/warning)
+- [x] Icons
+  - [x] `lucide-react-native` + `react-native-svg`
+  - [x] Per-icon imports for tree-shaking
+- [x] Toast provider (`react-native-toast-message`)
 
 **Exit criteria:** navigation works, screens render, toast shows test message.
 
