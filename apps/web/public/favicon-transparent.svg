@@ -1,8 +1,5 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
 
-  <!-- Black Background -->
-  <rect width="512" height="512" fill="#000000"/>
-
   <!-- Group with Shadow -->
   <g filter="url(#shadow)">
       
