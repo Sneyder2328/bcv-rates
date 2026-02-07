@@ -8,21 +8,14 @@
       
     <!-- Top Arrow (Yellow) -->
     <path d="M 88.58 226.48 A 170.0 170.0 0 0 1 407.22 178.32 L 389.43 187.46 L 452.96 221.27 L 478.38 141.77 L 460.59 150.91 A 230.0 230.0 0 0 0 29.49 216.06 Z" 
-          fill="#f5cd0d" filter="url(#bevel)"/>
+          fill="#f5cd0d" stroke="#f5cd0d" stroke-width="8" stroke-linejoin="round" filter="url(#bevel)"/>
 
     <!-- Bottom Arrow (Red) -->
     <path d="M 423.42 285.52 A 170.0 170.0 0 0 1 104.78 333.68 L 122.57 324.54 L 59.04 290.73 L 33.62 370.23 L 51.41 361.09 A 230.0 230.0 0 0 0 482.51 295.94 Z" 
-          fill="#d22031" filter="url(#bevel)"/>
+          fill="#d22031" stroke="#d22031" stroke-width="8" stroke-linejoin="round" filter="url(#bevel)"/>
 
-    <!-- Central C -->
-    <text x="256" y="360" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="300" fill="#1565C0">C</text>
-
-    <!-- Dollar Sign (Left) -->
-    <!-- Positioned relative to where top arrow starts/loops -->
-    <text x="120" y="240" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="140" fill="#FFFFFF" filter="url(#bevel)">$</text>
-
-    <!-- Euro Sign (Right) -->
-    <text x="392" y="380" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="140" fill="#FFFFFF" filter="url(#bevel)">€</text>
+    <!-- Centered Dollar Sign -->
+    <text x="256" y="365" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="320" fill="#1565C0" filter="url(#bevel)">$</text>
 
   </g>
 </svg>
