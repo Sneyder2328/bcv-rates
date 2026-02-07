@@ -1,6 +1,9 @@
 import { formatAmount, parseAmount } from "@bcv-rates/domain";
+import * as Clipboard from "expo-clipboard";
 import { useMemo, useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import Toast from "react-native-toast-message";
+import { Check, Copy } from "../icons";
 import { type ThemeColors, useTheme } from "../theme";
 
 interface CustomRateInputProps {
@@ -24,6 +27,8 @@ export function CustomRateInput({
   const styles = useMemo(() => getStyles(colors), [colors]);
   const [rateFocused, setRateFocused] = useState(false);
   const [amountFocused, setAmountFocused] = useState(false);
+  const [rateCopied, setRateCopied] = useState(false);
+  const [amountCopied, setAmountCopied] = useState(false);
 
   const parsedRate = parseAmount(rateValue);
   const formattedRate =
@@ -44,6 +49,25 @@ export function CustomRateInput({
         : `1 = ${formattedRate} Bs`
       : null;
 
+  const handleCopy = async (
+    text: string,
+    suffix: string,
+    setCopied: (val: boolean) => void,
+  ) => {
+    if (!text) return;
+    try {
+      await Clipboard.setStringAsync(text);
+      setCopied(true);
+      Toast.show({
+        type: "success",
+        text1: `${text} ${suffix} copiado al portapapeles`,
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      Toast.show({ type: "error", text1: "Error al copiar" });
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Rate Input */}
@@ -63,6 +87,7 @@ export function CustomRateInput({
             style={[
               styles.input,
               {
+                paddingRight: 72,
                 backgroundColor: colors.inputBackground,
                 borderColor: rateFocused
                   ? colors.accentViolet
@@ -71,16 +96,32 @@ export function CustomRateInput({
               },
             ]}
           />
-          <Text
-            style={[
-              styles.symbol,
-              {
-                color: rateFocused ? colors.accentViolet : colors.textMuted,
-              },
-            ]}
-          >
-            Bs.
-          </Text>
+          <View style={styles.suffixRow}>
+            <Pressable
+              onPress={() => handleCopy(rateValue, "Bs.", setRateCopied)}
+              disabled={!rateValue}
+              hitSlop={8}
+              style={({ pressed }) => ({
+                opacity: !rateValue ? 0.3 : pressed ? 0.5 : 1,
+              })}
+            >
+              {rateCopied ? (
+                <Check size={14} color={colors.accentEmerald} />
+              ) : (
+                <Copy size={14} color={colors.textMuted} />
+              )}
+            </Pressable>
+            <Text
+              style={[
+                styles.symbol,
+                {
+                  color: rateFocused ? colors.accentViolet : colors.textMuted,
+                },
+              ]}
+            >
+              Bs.
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -101,6 +142,7 @@ export function CustomRateInput({
             style={[
               styles.input,
               {
+                paddingRight: 72,
                 backgroundColor: colors.inputBackground,
                 borderColor: amountFocused
                   ? colors.accentViolet
@@ -109,16 +151,32 @@ export function CustomRateInput({
               },
             ]}
           />
-          <Text
-            style={[
-              styles.symbol,
-              {
-                color: amountFocused ? colors.accentViolet : colors.textMuted,
-              },
-            ]}
-          >
-            {unitLabel}
-          </Text>
+          <View style={styles.suffixRow}>
+            <Pressable
+              onPress={() => handleCopy(amountValue, "", setAmountCopied)}
+              disabled={!amountValue}
+              hitSlop={8}
+              style={({ pressed }) => ({
+                opacity: !amountValue ? 0.3 : pressed ? 0.5 : 1,
+              })}
+            >
+              {amountCopied ? (
+                <Check size={14} color={colors.accentEmerald} />
+              ) : (
+                <Copy size={14} color={colors.textMuted} />
+              )}
+            </Pressable>
+            <Text
+              style={[
+                styles.symbol,
+                {
+                  color: amountFocused ? colors.accentViolet : colors.textMuted,
+                },
+              ]}
+            >
+              {unitLabel}
+            </Text>
+          </View>
         </View>
         {rateHint && (
           <View style={styles.hintRow}>
@@ -155,13 +213,17 @@ const getStyles = (colors: ThemeColors) =>
       borderRadius: 12,
       borderWidth: 1,
       paddingHorizontal: 14,
-      paddingRight: 44,
       fontSize: 16,
       fontVariant: ["tabular-nums"],
     },
-    symbol: {
+    suffixRow: {
       position: "absolute",
       right: 14,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    symbol: {
       fontSize: 15,
       fontWeight: "500",
     },

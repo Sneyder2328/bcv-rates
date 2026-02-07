@@ -205,17 +205,17 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
 ## Phase 8 — Analytics (Umami, gated by env)
 **Goal:** parity event tracking with web.
 
-- [ ] Env gating (`UMAMI_ENABLED`)
-- [ ] Umami client
-  - [ ] `track(event, data?)`
-  - [ ] `trackOnce(key, event, data?)`
-  - [ ] `trackDebounced(key, event, data?, delay)`
-  - [ ] HTTP POST to Umami endpoint
-- [ ] Key events (match web)
-  - [ ] rates loaded
-  - [ ] sign in / sign out
-  - [ ] custom rate CRUD (optional)
-  - [ ] history viewed (optional)
+- [x] Env gating (`UMAMI_ENABLED`)
+- [x] Umami client
+  - [x] `track(event, data?)`
+  - [x] `trackOnce(key, event, data?)`
+  - [x] `trackDebounced(key, event, data?, delay)`
+  - [x] HTTP POST to Umami endpoint
+- [x] Key events (match web)
+  - [x] rates loaded
+  - [x] sign in / sign out
+  - [x] custom rate CRUD (optional)
+  - [x] history viewed (optional)
 
 **Exit criteria:** events send only when enabled; no calls when disabled.
 

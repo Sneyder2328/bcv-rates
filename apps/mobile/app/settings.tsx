@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import { track, trackOnce } from "../src/analytics/umami";
 import { useAuth } from "../src/auth";
 import { Banner, Button, Card } from "../src/components/primitives";
 import { formatCustomRate, useCustomRates } from "../src/hooks/useCustomRates";
@@ -59,6 +60,14 @@ export default function SettingsScreen() {
     updateMutation.isPending ||
     deleteMutation.isPending;
 
+  useEffect(() => {
+    if (isOnline) return;
+    if (!user) return;
+    trackOnce("offline_mode_shown_settings", "offline_mode_shown", {
+      surface: "settings",
+    });
+  }, [isOnline, user]);
+
   // ---- Handlers ----
 
   async function handleCreate() {
@@ -76,6 +85,7 @@ export default function SettingsScreen() {
 
     try {
       await createMutation.mutateAsync({ label, rate });
+      track("custom_rate_create", { source: "settings" });
       setLabel("");
       setRate("");
       Toast.show({ type: "success", text1: "Tasa guardada" });
@@ -91,6 +101,7 @@ export default function SettingsScreen() {
     }
     try {
       await updateMutation.mutateAsync({ id, rate: editingRate });
+      track("custom_rate_update", { source: "settings" });
       setEditingId(null);
       setEditingRate("");
       Toast.show({ type: "success", text1: "Tasa actualizada" });
@@ -106,6 +117,7 @@ export default function SettingsScreen() {
     }
     try {
       await deleteMutation.mutateAsync({ id });
+      track("custom_rate_delete", { source: "settings" });
       Toast.show({ type: "success", text1: "Tasa eliminada" });
     } catch {
       Toast.show({ type: "error", text1: "No se pudo eliminar la tasa" });
@@ -117,7 +129,13 @@ export default function SettingsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Button variant="ghost" onPress={() => router.back()}>
+          <Button
+            variant="ghost"
+            onPress={() => {
+              track("settings_close");
+              router.back();
+            }}
+          >
             <ChevronLeft size={24} color={colors.textMuted} />
           </Button>
         </View>

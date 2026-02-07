@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { track } from "../src/analytics/umami";
 import { useAuth } from "../src/auth";
 import { Banner, Button, Card } from "../src/components/primitives";
 import type {
@@ -44,6 +45,14 @@ export default function HistoryScreen() {
 
   const { chartData, isLoading, isFetching, error, isEmpty } =
     useHistoricalRates(currency, days);
+
+  const didTrackViewed = useRef(false);
+  useEffect(() => {
+    if (!user) return;
+    if (didTrackViewed.current) return;
+    didTrackViewed.current = true;
+    track("history_viewed", { currency, days });
+  }, [currency, days, user]);
 
   const isUsd = currency === "USD";
   const accentColor = isUsd ? colors.accentEmerald : colors.accentBlue;
@@ -104,7 +113,10 @@ export default function HistoryScreen() {
           </Text>
           <Button
             style={styles.signInButton}
-            onPress={() => router.push("/auth")}
+            onPress={() => {
+              track("auth_open", { mode: "login" });
+              router.push("/auth");
+            }}
           >
             Iniciar sesión
           </Button>

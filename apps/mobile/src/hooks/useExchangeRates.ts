@@ -1,5 +1,7 @@
-import { formatRate } from "@bcv-rates/domain";
+import { formatAmount } from "@bcv-rates/domain";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { trackOnce } from "../analytics/umami";
 import { getTrpcClient } from "../lib/trpcClient";
 import { useOnlineStatus } from "./useOnlineStatus";
 
@@ -100,7 +102,7 @@ function deriveStatusLine(
 // -------------------------------------------------------------------
 
 export function formatRateDisplay(rate: number): string {
-  return formatRate(rate);
+  return formatAmount(rate);
 }
 
 // -------------------------------------------------------------------
@@ -126,6 +128,67 @@ export function useExchangeRates() {
   const error = queryError
     ? (queryError as Error).message || "Error inesperado cargando las tasas."
     : null;
+
+  useEffect(() => {
+    if (!rates) return;
+    trackOnce("rates_loaded", "rates_loaded", { online: isOnline });
+  }, [isOnline, rates]);
+
+  useEffect(() => {
+    if (!queryError) return;
+
+    const errorMessage =
+      queryError instanceof Error ? queryError.message : String(queryError);
+
+    let category: "network" | "timeout" | "auth" | "server" | "unknown" =
+      "unknown";
+
+    if (
+      errorMessage.includes("fetch") ||
+      errorMessage.includes("network") ||
+      errorMessage.includes("connection")
+    ) {
+      category = "network";
+    } else if (
+      errorMessage.includes("timeout") ||
+      errorMessage.includes("aborted")
+    ) {
+      category = "timeout";
+    } else if (
+      errorMessage.includes("unauthorized") ||
+      errorMessage.includes("forbidden") ||
+      errorMessage.includes("auth")
+    ) {
+      category = "auth";
+    } else if (
+      errorMessage.includes("500") ||
+      errorMessage.includes("internal") ||
+      errorMessage.includes("server")
+    ) {
+      category = "server";
+    }
+
+    const hasCachedRates = !!rates;
+
+    trackOnce(
+      `rates_load_error_${isOnline ? "online" : "offline"}`,
+      "rates_load_error",
+      {
+        online: isOnline,
+        category,
+        hasCachedRates,
+      },
+    );
+  }, [isOnline, queryError, rates]);
+
+  useEffect(() => {
+    if (isOnline) return;
+    if (rates) return;
+    trackOnce("offline_mode_shown_rates", "offline_mode_shown", {
+      surface: "rates",
+      hasRates: false,
+    });
+  }, [isOnline, rates]);
 
   const syncingRates = isOnline && isFetching;
 

@@ -31,6 +31,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: ["expo-router", "@react-native-google-signin/google-signin"],
   extra: {
     apiBaseUrl: process.env.API_BASE_URL || "",
+    // Umami analytics (gated by UMAMI_ENABLED)
+    umamiEnabled: process.env.UMAMI_ENABLED === "true",
+    umamiHost: process.env.UMAMI_HOST || "",
+    umamiWebsiteId: process.env.UMAMI_WEBSITE_ID || "",
     // Firebase
     firebaseApiKey: process.env.FIREBASE_API_KEY || "",
     firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN || "",

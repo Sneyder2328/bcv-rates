@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import { track } from "../src/analytics/umami";
 import { useAuth } from "../src/auth";
 import { Button, Card, Input, Label } from "../src/components/primitives";
 import { ChevronLeft, Eye, EyeOff, Mail, User } from "../src/icons";
@@ -73,6 +74,8 @@ export default function AuthScreen() {
   // Google sign-in via native @react-native-google-signin
   // ------------------------------------------------------------------
   const handleGoogleSignIn = useCallback(async () => {
+    track("auth_method_click", { method: "google", mode });
+
     const gsi = getGoogleSignInModule();
     if (!gsi) {
       Toast.show({
@@ -109,6 +112,7 @@ export default function AuthScreen() {
           );
         }
         await signInWithGoogle(idToken);
+        track("auth_success", { method: "google", mode });
         Toast.show({ type: "success", text1: "Sesión iniciada con Google" });
         router.back();
       }
@@ -122,6 +126,7 @@ export default function AuthScreen() {
           case gsi.statusCodes.IN_PROGRESS:
             break;
           case gsi.statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+            track("auth_error", { method: "google", mode });
             Toast.show({
               type: "error",
               text1: "Google Play Services no disponible",
@@ -129,6 +134,7 @@ export default function AuthScreen() {
             });
             break;
           default:
+            track("auth_error", { method: "google", mode });
             Toast.show({
               type: "error",
               text1: "Error al iniciar sesión con Google",
@@ -138,12 +144,13 @@ export default function AuthScreen() {
       } else {
         const message =
           err instanceof Error ? err.message : "Error desconocido";
+        track("auth_error", { method: "google", mode });
         Toast.show({ type: "error", text1: "Error", text2: message });
       }
     } finally {
       setSubmitting(false);
     }
-  }, [extra.googleWebClientId, signInWithGoogle, router]);
+  }, [extra.googleWebClientId, mode, signInWithGoogle, router]);
 
   // ------------------------------------------------------------------
   // Email / password
@@ -162,15 +169,19 @@ export default function AuthScreen() {
       setSubmitting(true);
       Keyboard.dismiss();
 
+      track("auth_method_click", { method: "email", mode });
       if (mode === "login") {
         await signInWithEmailPassword(trimmedEmail, password);
+        track("auth_success", { method: "email", mode });
         Toast.show({ type: "success", text1: "Sesión iniciada" });
       } else {
         await signUpWithEmailPassword(trimmedEmail, password);
+        track("auth_success", { method: "email", mode });
         Toast.show({ type: "success", text1: "Cuenta creada correctamente" });
       }
       router.back();
     } catch (err) {
+      track("auth_error", { method: "email", mode });
       const message = getFirebaseErrorMessage(err);
       Toast.show({ type: "error", text1: "Error", text2: message });
     } finally {

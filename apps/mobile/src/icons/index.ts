@@ -8,6 +8,7 @@ export {
   BarChart3,
   Check,
   ChevronLeft,
+  Copy,
   Eye,
   EyeOff,
   Home,

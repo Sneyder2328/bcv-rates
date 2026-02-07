@@ -5,6 +5,7 @@ import {
   vesToForeign,
 } from "@bcv-rates/domain";
 import { useState } from "react";
+import { trackDebounced } from "../analytics/umami";
 import type { ExchangeRates } from "./useExchangeRates";
 
 export function useCurrencyConverter(rates: ExchangeRates | null) {
@@ -26,10 +27,22 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       return;
     }
 
+    const customRateNum = parseAmount(customRate);
+    if (amount > 0) {
+      trackDebounced(
+        "convert",
+        "convert",
+        {
+          input: "ves",
+          hasCustomRate: Boolean(customRateNum && customRateNum > 0),
+        },
+        800,
+      );
+    }
+
     setUsd(formatAmount(vesToForeign(amount, rates.usd)));
     setEur(formatAmount(vesToForeign(amount, rates.eur)));
 
-    const customRateNum = parseAmount(customRate);
     if (customRateNum && customRateNum > 0) {
       setCustomAmount(formatAmount(vesToForeign(amount, customRateNum)));
     }
@@ -47,11 +60,23 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       return;
     }
 
+    const customRateNum = parseAmount(customRate);
+    if (amount > 0) {
+      trackDebounced(
+        "convert",
+        "convert",
+        {
+          input: "usd",
+          hasCustomRate: Boolean(customRateNum && customRateNum > 0),
+        },
+        800,
+      );
+    }
+
     const ves = foreignToVes(amount, rates.usd);
     setBolivars(formatAmount(ves));
     setEur(formatAmount(vesToForeign(ves, rates.eur)));
 
-    const customRateNum = parseAmount(customRate);
     if (customRateNum && customRateNum > 0) {
       setCustomAmount(formatAmount(vesToForeign(ves, customRateNum)));
     }
@@ -69,11 +94,23 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       return;
     }
 
+    const customRateNum = parseAmount(customRate);
+    if (amount > 0) {
+      trackDebounced(
+        "convert",
+        "convert",
+        {
+          input: "eur",
+          hasCustomRate: Boolean(customRateNum && customRateNum > 0),
+        },
+        800,
+      );
+    }
+
     const ves = foreignToVes(amount, rates.eur);
     setBolivars(formatAmount(ves));
     setUsd(formatAmount(vesToForeign(ves, rates.usd)));
 
-    const customRateNum = parseAmount(customRate);
     if (customRateNum && customRateNum > 0) {
       setCustomAmount(formatAmount(vesToForeign(ves, customRateNum)));
     }
@@ -105,6 +142,15 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       setUsd("");
       setEur("");
       return;
+    }
+
+    if (amount > 0) {
+      trackDebounced(
+        "convert",
+        "convert",
+        { input: "custom", hasCustomRate: true },
+        800,
+      );
     }
 
     const ves = foreignToVes(amount, customRateNum);

@@ -1,5 +1,8 @@
+import * as Clipboard from "expo-clipboard";
 import { useMemo, useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import Toast from "react-native-toast-message";
+import { Check, Copy } from "../icons";
 import { type ThemeColors, useTheme } from "../theme";
 
 type FocusColor = "indigo" | "emerald" | "blue" | "violet";
@@ -14,6 +17,7 @@ interface CurrencyInputProps {
   exchangeRate?: string;
   inputSize?: "sm" | "lg";
   deltaPercent?: number;
+  showCopy?: boolean;
 }
 
 export function CurrencyInput({
@@ -26,9 +30,11 @@ export function CurrencyInput({
   exchangeRate,
   inputSize = "sm",
   deltaPercent,
+  showCopy = false,
 }: CurrencyInputProps) {
   const { colors } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
+  const [copied, setCopied] = useState(false);
   const styles = useMemo(() => getStyles(colors), [colors]);
 
   const accentColorMap: Record<FocusColor, string> = {
@@ -40,6 +46,21 @@ export function CurrencyInput({
   const accent = accentColorMap[focusColor];
 
   const height = inputSize === "lg" ? 56 : 48;
+
+  const handleCopy = async () => {
+    if (!value) return;
+    try {
+      await Clipboard.setStringAsync(value);
+      setCopied(true);
+      Toast.show({
+        type: "success",
+        text1: `${value} ${symbol} copiado al portapapeles`,
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      Toast.show({ type: "error", text1: "Error al copiar" });
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -63,17 +84,36 @@ export function CurrencyInput({
               borderColor: isFocused ? accent : colors.inputBorder,
               color: colors.inputText,
               fontSize: inputSize === "lg" ? 20 : 16,
+              paddingRight: showCopy ? 72 : 44,
             },
           ]}
         />
-        <Text
-          style={[
-            styles.symbol,
-            { color: isFocused ? accent : colors.textMuted },
-          ]}
-        >
-          {symbol}
-        </Text>
+        <View style={styles.suffixRow}>
+          {showCopy && (
+            <Pressable
+              onPress={handleCopy}
+              disabled={!value}
+              hitSlop={8}
+              style={({ pressed }) => ({
+                opacity: !value ? 0.3 : pressed ? 0.5 : 1,
+              })}
+            >
+              {copied ? (
+                <Check size={14} color={colors.accentEmerald} />
+              ) : (
+                <Copy size={14} color={colors.textMuted} />
+              )}
+            </Pressable>
+          )}
+          <Text
+            style={[
+              styles.symbol,
+              { color: isFocused ? accent : colors.textMuted },
+            ]}
+          >
+            {symbol}
+          </Text>
+        </View>
       </View>
 
       {/* Rate hint + delta row */}
@@ -132,12 +172,16 @@ const getStyles = (colors: ThemeColors) =>
       borderRadius: 12,
       borderWidth: 1,
       paddingHorizontal: 14,
-      paddingRight: 44,
       fontVariant: ["tabular-nums"],
     },
-    symbol: {
+    suffixRow: {
       position: "absolute",
       right: 14,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    symbol: {
       fontSize: 15,
       fontWeight: "500",
     },

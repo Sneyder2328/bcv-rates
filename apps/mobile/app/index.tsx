@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import { track } from "../src/analytics/umami";
 import { useAuth } from "../src/auth";
 import { CurrencyInput } from "../src/components/CurrencyInput";
 import { CustomRateInput } from "../src/components/CustomRateInput";
@@ -78,6 +79,7 @@ export default function HomeScreen() {
 
   const handleSignOut = async () => {
     try {
+      track("auth_signout");
       await signOut();
       Toast.show({ type: "success", text1: "Sesión cerrada" });
     } catch {
@@ -97,7 +99,13 @@ export default function HomeScreen() {
           <Text style={styles.subtitle}>BCV Rates</Text>
         </View>
         <View style={styles.headerRight}>
-          <Button variant="ghost" onPress={() => router.push("/settings")}>
+          <Button
+            variant="ghost"
+            onPress={() => {
+              track("settings_open");
+              router.push("/settings");
+            }}
+          >
             <Settings size={24} color={colors.textMuted} />
           </Button>
         </View>
@@ -203,6 +211,7 @@ export default function HomeScreen() {
                 disabled={disabled}
                 symbol="$"
                 focusColor="emerald"
+                showCopy
                 exchangeRate={
                   rates ? `1 USD = ${formatAmount(rates.usd)} Bs` : undefined
                 }
@@ -217,6 +226,7 @@ export default function HomeScreen() {
                 disabled={disabled}
                 symbol="€"
                 focusColor="blue"
+                showCopy
                 exchangeRate={
                   rates ? `1 EUR = ${formatAmount(rates.eur)} Bs` : undefined
                 }
@@ -243,6 +253,7 @@ export default function HomeScreen() {
               error={savedRatesError}
               activeLabel={customUnitLabel}
               onRateSelect={(label, formattedRate) => {
+                track("custom_rate_select", { source: "main" });
                 setCustomUnitLabel(label);
                 onCustomRateChange(formattedRate);
               }}
@@ -298,7 +309,10 @@ export default function HomeScreen() {
         ) : (
           <Button
             variant="outline"
-            onPress={() => router.push("/auth")}
+            onPress={() => {
+              track("auth_open", { mode: "login" });
+              router.push("/auth");
+            }}
             style={styles.authButton}
           >
             <User size={18} color={colors.textSecondary} />
