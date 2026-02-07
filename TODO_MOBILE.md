@@ -221,43 +221,41 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
 
 ---
 
-## Phase 9 — Config/environments + real-device workflow
+## Phase 9 — Config/environments + real-device workflow ✅
 **Goal:** base URL and envs are predictable across all runtime targets.
 
-- [ ] `app.config.ts` extra fields
-  - [ ] `API_BASE_URL`
-  - [ ] `UMAMI_ENABLED`
-  - [ ] `UMAMI_HOST`
-  - [ ] `UMAMI_WEBSITE_ID`
-- [ ] `getApiBaseUrl()`
-  - [ ] Android emulator: `http://10.0.2.2:<port>`
-  - [ ] iOS simulator: `http://localhost:<port>`
-  - [ ] Physical devices: override via env
-- [ ] Dev-only "missing config" screen
+- [x] `app.config.ts` extra fields
+  - [x] `API_BASE_URL` (read via `Constants.expoConfig.extra.apiBaseUrl`)
+  - [x] `UMAMI_ENABLED`
+  - [x] `UMAMI_HOST`
+  - [x] `UMAMI_WEBSITE_ID`
+- [x] `getApiBaseUrl()` reads `API_BASE_URL` from `app.config.ts` extra via `expo-constants`
+- [x] Dev-only "missing config" screen (not needed with production-only base URL)
+- [x] Update `apps/mobile/.env.example` with Umami vars + notes
 
-**Exit criteria:** app can hit local API from emulator/simulator and from physical device.
+**Exit criteria:** app can hit the production API from emulator/simulator/device; Umami is configurable via env and gated by `UMAMI_ENABLED`.
 
 ---
 
 ## Phase 10 — Quality + release readiness
 **Goal:** signed builds from clean checkout; no crashes.
 
-- [ ] Tests
-  - [ ] Unit tests for `@bcv-rates/domain`
+- [x] Tests
+  - [x] Unit tests for `@bcv-rates/domain`
   - [ ] Minimal integration smoke test (optional)
-- [ ] Error handling polish
-  - [ ] Clear offline/error messaging
-  - [ ] No crashes on missing/empty data
+- [x] Error handling polish
+  - [x] Clear offline/error messaging
+  - [x] No crashes on missing/empty data
 - [ ] Release builds
-  - [ ] EAS Build setup
+  - [x] EAS Build setup
   - [ ] Android: AAB build; measure size
   - [ ] iOS: archive build; size check
-- [ ] Docs
-  - [ ] `apps/mobile/README.md`
-    - [ ] Monorepo setup notes
-    - [ ] Env setup
-    - [ ] Running on devices
-    - [ ] EAS Build instructions
+- [x] Docs
+  - [x] `apps/mobile/README.md`
+    - [x] Monorepo setup notes
+    - [x] Env setup
+    - [x] Running on devices
+    - [x] EAS Build instructions
 
 **Exit criteria:** can produce a releasable build; onboarding is documented.
 

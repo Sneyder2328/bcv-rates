@@ -2,11 +2,13 @@
   "name": "@bcv-rates/mobile",
   "version": "0.0.1",
   "private": true,
+  "packageManager": "pnpm@10.28.2",
   "main": "expo-router/entry",
   "scripts": {
     "dev": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
+    "postinstall": "cd ../.. && pnpm --filter @bcv-rates/domain build",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "type-check": "tsc --noEmit"
@@ -23,6 +25,7 @@
     "expo": "~54.0.33",
     "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.13",
+    "expo-dev-client": "~6.0.20",
     "expo-linear-gradient": "^15.0.8",
     "expo-router": "~6.0.23",
     "expo-status-bar": "~3.0.9",

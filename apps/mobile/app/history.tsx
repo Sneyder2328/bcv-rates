@@ -20,7 +20,8 @@ import type {
   HistoryRange,
 } from "../src/hooks/useHistoricalRates";
 import { useHistoricalRates } from "../src/hooks/useHistoricalRates";
-import { ChevronLeft, TrendingUp } from "../src/icons";
+import { useOnlineStatus } from "../src/hooks/useOnlineStatus";
+import { ChevronLeft, TrendingUp, WifiOff } from "../src/icons";
 import { type ThemeColors, useTheme } from "../src/theme";
 
 const RANGE_OPTIONS: { value: HistoryRange; label: string }[] = [
@@ -38,6 +39,7 @@ export default function HistoryScreen() {
   const { colors, isDark } = useTheme();
   const router = useRouter();
   const { user } = useAuth();
+  const isOnline = useOnlineStatus();
   const styles = useMemo(() => getStyles(colors), [colors]);
 
   const [currency, setCurrency] = useState<HistoryCurrency>("USD");
@@ -134,6 +136,24 @@ export default function HistoryScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {/* Offline banner */}
+        {!isOnline && (
+          <Banner variant="warning" style={styles.banner}>
+            <View style={styles.bannerRow}>
+              <WifiOff size={16} color={colors.bannerWarning.text} />
+              <Text
+                style={[
+                  styles.bannerText,
+                  { color: colors.bannerWarning.text },
+                ]}
+              >
+                Sin conexión a internet
+                {chartData.length > 0 ? " — mostrando datos guardados" : ""}
+              </Text>
+            </View>
+          </Banner>
+        )}
+
         {/* Controls */}
         <View style={styles.controlsRow}>
           {/* Currency toggle */}
@@ -212,7 +232,7 @@ export default function HistoryScreen() {
         </View>
 
         {/* Error */}
-        {error && (
+        {isOnline && error && (
           <Banner variant="error" style={styles.banner}>
             <Text
               style={[styles.bannerText, { color: colors.bannerError.text }]}
@@ -232,7 +252,9 @@ export default function HistoryScreen() {
           ) : isEmpty ? (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyChartText}>
-                No hay historial disponible para {currency}.
+                {!isOnline
+                  ? "Sin conexión. Conéctate para cargar el historial."
+                  : `No hay historial disponible para ${currency}.`}
               </Text>
             </View>
           ) : (
@@ -562,8 +584,14 @@ const getStyles = (colors: ThemeColors) =>
     banner: {
       marginBottom: 12,
     },
+    bannerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
     bannerText: {
       fontSize: 13,
+      flexShrink: 1,
     },
 
     // Chart

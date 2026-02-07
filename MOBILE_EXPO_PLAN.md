@@ -130,11 +130,8 @@ This approach means:
 #### Config / environments
 
 - **Expo Constants + `app.config.ts`** for environment variables (replaces `react-native-config`).
-- `extra` field in `app.config.ts` for runtime env vars (`API_BASE_URL`, `UMAMI_ENABLED`, etc.).
-- Platform-specific API URL defaults:
-  - Android emulator: `http://10.0.2.2:<port>`
-  - iOS simulator: `http://localhost:<port>`
-  - Physical devices: `http://<LAN IP>:<port>`
+- `extra` field in `app.config.ts` for runtime env vars (`UMAMI_*`, Firebase, etc.).
+- **API base URL**: read from `API_BASE_URL` env var via `app.config.ts` extra → `expo-constants` at runtime.
 
 #### Analytics (Umami)
 

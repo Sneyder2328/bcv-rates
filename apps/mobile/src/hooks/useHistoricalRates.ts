@@ -4,6 +4,7 @@ import {
 } from "@bcv-rates/domain";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { useAuth } from "../auth";
 import { getTrpcClient } from "../lib/trpcClient";
 
 export type HistoryCurrency = "USD" | "EUR";
@@ -22,6 +23,8 @@ export function useHistoricalRates(
   currency: HistoryCurrency,
   days: HistoryRange,
 ) {
+  const { user } = useAuth();
+
   const {
     data: rawData,
     isLoading,
@@ -35,7 +38,7 @@ export function useHistoricalRates(
         limit: days,
       }),
     // Require authentication — the API endpoint is protected
-    enabled: true,
+    enabled: !!user,
     meta: { persist: true },
   });
 
@@ -43,20 +46,29 @@ export function useHistoricalRates(
     if (!rawData || rawData.length === 0) return [];
 
     // API returns data ordered by date desc; chart needs old → new (left → right)
-    return [...rawData].reverse().map((item) => {
-      const localDate = parseIsoCalendarDateToLocalDate(item.date);
-      const { short, full } = formatChartDate(localDate);
-      return {
-        value: Number.parseFloat(item.rate),
-        label: short,
-        fullDate: full,
-      };
-    });
+    return [...rawData]
+      .reverse()
+      .map((item) => {
+        const value = Number.parseFloat(item.rate);
+        if (!Number.isFinite(value)) return null;
+
+        const localDate = parseIsoCalendarDateToLocalDate(item.date);
+        const { short, full } = formatChartDate(localDate);
+        return {
+          value,
+          label: short,
+          fullDate: full,
+        };
+      })
+      .filter((p): p is ChartDataPoint => p !== null);
   }, [rawData]);
 
-  const error = queryError
-    ? (queryError as Error).message || "Error cargando historial."
-    : null;
+  const error =
+    user && queryError
+      ? queryError instanceof Error
+        ? queryError.message || "Error cargando historial."
+        : "Error cargando historial."
+      : null;
 
   return {
     chartData,

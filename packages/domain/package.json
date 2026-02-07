@@ -19,8 +19,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch --preserveWatchOutput",
-    "lint": "biome check src tsconfig*.json package.json",
-    "lint:fix": "biome check --write src tsconfig*.json package.json",
+    "lint": "biome check src test tsconfig*.json package.json",
+    "lint:fix": "biome check --write src test tsconfig*.json package.json",
+    "test": "pnpm run build && node --test",
     "type-check": "tsc --noEmit -p tsconfig.build.json"
   }
 }

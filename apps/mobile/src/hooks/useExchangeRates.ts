@@ -126,7 +126,9 @@ export function useExchangeRates() {
   const rates = deriveRates(latestRates ?? null);
 
   const error = queryError
-    ? (queryError as Error).message || "Error inesperado cargando las tasas."
+    ? queryError instanceof Error
+      ? queryError.message || "Error inesperado cargando las tasas."
+      : "Error inesperado cargando las tasas."
     : null;
 
   useEffect(() => {
