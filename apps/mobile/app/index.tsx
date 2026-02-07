@@ -1,6 +1,6 @@
 import { formatAmount } from "@bcv-rates/domain";
 import { useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
@@ -19,7 +19,9 @@ import {
   Card,
   SectionDivider,
 } from "../src/components/primitives";
+import { SavedRatesList } from "../src/components/SavedRatesList";
 import { useCurrencyConverter } from "../src/hooks/useCurrencyConverter";
+import { useCustomRates } from "../src/hooks/useCustomRates";
 import {
   formatRateDisplay,
   useExchangeRates,
@@ -48,6 +50,19 @@ export default function HomeScreen() {
     onCustomRateChange,
     onCustomAmountChange,
   } = useCurrencyConverter(rates);
+
+  const [customUnitLabel, setCustomUnitLabel] = useState("★");
+
+  const {
+    items: savedRates,
+    isLoading: savedRatesLoading,
+    error: savedRatesError,
+  } = useCustomRates();
+
+  // Reset unit label when user signs out
+  useEffect(() => {
+    if (!user) setCustomUnitLabel("★");
+  }, [user]);
 
   const disabled = !rates;
 
@@ -218,7 +233,21 @@ export default function HomeScreen() {
             onRateChange={onCustomRateChange}
             onAmountChange={onCustomAmountChange}
             disabled={disabled}
+            unitLabel={customUnitLabel}
           />
+
+          {user && (
+            <SavedRatesList
+              items={savedRates}
+              isLoading={savedRatesLoading}
+              error={savedRatesError}
+              activeLabel={customUnitLabel}
+              onRateSelect={(label, formattedRate) => {
+                setCustomUnitLabel(label);
+                onCustomRateChange(formattedRate);
+              }}
+            />
+          )}
         </Card>
 
         {/* Navigation buttons */}
@@ -273,7 +302,15 @@ export default function HomeScreen() {
             style={styles.authButton}
           >
             <User size={18} color={colors.textSecondary} />
-            Iniciar sesión
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: "600",
+                color: colors.textSecondary,
+              }}
+            >
+              Iniciar sesión
+            </Text>
           </Button>
         )}
       </ScrollView>

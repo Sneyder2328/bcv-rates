@@ -162,21 +162,21 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
 ## Phase 6 — Custom rates (CRUD + offline read-only)
 **Goal:** manage custom rates online; view cached list offline read-only.
 
-- [ ] Data
-  - [ ] `customRates.list` query (persist last result)
-  - [ ] Mutations: `create`, `update`, `delete`
-  - [ ] Invalidate list on mutation success
-- [ ] Offline behavior
-  - [ ] When offline: disable CRUD controls
-  - [ ] Banner: "Offline — read-only"
-  - [ ] Render cached list for last signed-in user
-- [ ] Settings screen
-  - [ ] List view
-  - [ ] Create form
-  - [ ] Empty/loading/error states
-- [ ] Converter integration
-  - [ ] Custom rate selector uses cached list
-  - [ ] Recompute conversions when selected rate changes
+- [x] Data
+  - [x] `customRates.list` query (persist last result)
+  - [x] Mutations: `create`, `update`, `delete`
+  - [x] Invalidate list on mutation success
+- [x] Offline behavior
+  - [x] When offline: disable CRUD controls
+  - [x] Banner: "Offline — read-only"
+  - [x] Render cached list for last signed-in user
+- [x] Settings screen
+  - [x] List view
+  - [x] Create form
+  - [x] Empty/loading/error states
+- [x] Converter integration
+  - [x] Custom rate selector uses cached list
+  - [x] Recompute conversions when selected rate changes
 
 **Exit criteria:** CRUD works online; offline shows cached list and prevents edits.
 
@@ -260,6 +260,22 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
     - [ ] EAS Build instructions
 
 **Exit criteria:** can produce a releasable build; onboarding is documented.
+
+---
+
+## Phase 11 — Native Google Sign-In (UX upgrade)
+**Goal:** replace browser-based Google auth with native one-tap sign-in for a smoother UX.
+
+- [ ] Install `@react-native-google-signin/google-signin`
+- [ ] Add config plugin to `app.config.ts`
+- [ ] Create platform-specific OAuth client IDs
+  - [ ] Android: Google Cloud Console → OAuth client → Android (needs SHA-1 + package name)
+  - [ ] iOS: Google Cloud Console → OAuth client → iOS (needs bundle ID)
+- [ ] Update `app/auth.tsx` to use `GoogleSignin.signIn()` instead of `AuthRequest.promptAsync`
+- [ ] Rebuild native projects (`expo run:android`, `expo run:ios`)
+- [ ] Verify sign-in flow on both platforms
+
+**Exit criteria:** native account picker appears instead of browser redirect; Firebase auth still works.
 
 ---
 

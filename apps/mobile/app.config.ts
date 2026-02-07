@@ -26,8 +26,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     edgeToEdgeEnabled: true,
     package: "com.sneyderangulo.elcambio",
+    googleServicesFile: "./google-services.json",
   },
-  plugins: ["expo-router"],
+  plugins: ["expo-router", "@react-native-google-signin/google-signin"],
   extra: {
     apiBaseUrl: process.env.API_BASE_URL || "",
     // Firebase
@@ -37,9 +38,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     firebaseAppId: process.env.FIREBASE_APP_ID || "",
     firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "",
     firebaseStorageBucket: process.env.FIREBASE_STORAGE_BUCKET || "",
-    // Google OAuth client IDs (for expo-auth-session)
+    // Google Sign-In (web client ID = "server" client ID for Firebase)
     googleWebClientId: process.env.GOOGLE_WEB_CLIENT_ID || "",
-    googleAndroidClientId: process.env.GOOGLE_ANDROID_CLIENT_ID || "",
-    googleIosClientId: process.env.GOOGLE_IOS_CLIENT_ID || "",
   },
 });

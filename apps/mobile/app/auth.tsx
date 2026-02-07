@@ -1,9 +1,12 @@
-import { AuthRequest, makeRedirectUri } from "expo-auth-session";
-import { discovery } from "expo-auth-session/providers/google";
+import {
+  GoogleSignin,
+  isErrorWithCode,
+  isSuccessResponse,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -19,9 +22,6 @@ import { useAuth } from "../src/auth";
 import { Button, Card, Input, Label } from "../src/components/primitives";
 import { ChevronLeft, Eye, EyeOff, Mail, User } from "../src/icons";
 import { type ThemeColors, useTheme } from "../src/theme";
-
-// Required so the browser dismisses correctly after OAuth redirect.
-WebBrowser.maybeCompleteAuthSession();
 
 type AuthMode = "login" | "signup";
 
@@ -41,10 +41,20 @@ export default function AuthScreen() {
   const extra = Constants.expoConfig?.extra ?? {};
 
   // ------------------------------------------------------------------
-  // Google sign-in via expo-auth-session
+  // Configure native Google Sign-In once
+  // ------------------------------------------------------------------
+  useEffect(() => {
+    const webClientId = extra.googleWebClientId as string | undefined;
+    if (webClientId) {
+      GoogleSignin.configure({ webClientId });
+    }
+  }, [extra.googleWebClientId]);
+
+  // ------------------------------------------------------------------
+  // Google sign-in via native @react-native-google-signin
   // ------------------------------------------------------------------
   const handleGoogleSignIn = useCallback(async () => {
-    const webClientId = extra.googleWebClientId as string;
+    const webClientId = extra.googleWebClientId as string | undefined;
     if (!webClientId) {
       Toast.show({
         type: "error",
@@ -56,34 +66,51 @@ export default function AuthScreen() {
 
     try {
       setSubmitting(true);
-
-      const redirectUri = makeRedirectUri({ scheme: "elcambio" });
-
-      const request = new AuthRequest({
-        clientId: webClientId,
-        redirectUri,
-        scopes: ["openid", "profile", "email"],
-        responseType: "id_token" as const,
-        extraParams: { nonce: Math.random().toString(36).slice(2) },
+      await GoogleSignin.hasPlayServices({
+        showPlayServicesUpdateDialog: true,
       });
 
-      const result = await request.promptAsync(discovery);
+      const response = await GoogleSignin.signIn();
 
-      if (result.type === "success" && result.params.id_token) {
-        await signInWithGoogle(result.params.id_token);
+      if (isSuccessResponse(response)) {
+        const idToken = response.data.idToken;
+        if (!idToken) {
+          throw new Error(
+            "Google no devolvió un id_token. Revisa la configuración de webClientId.",
+          );
+        }
+        await signInWithGoogle(idToken);
         Toast.show({ type: "success", text1: "Sesión iniciada con Google" });
         router.back();
-      } else if (result.type === "cancel") {
-        // User cancelled — do nothing.
-      } else {
-        Toast.show({
-          type: "error",
-          text1: "Error al iniciar sesión con Google",
-        });
       }
+      // If not success, user cancelled — do nothing.
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Error desconocido";
-      Toast.show({ type: "error", text1: "Error", text2: message });
+      if (isErrorWithCode(err)) {
+        switch (err.code) {
+          case statusCodes.SIGN_IN_CANCELLED:
+            // User cancelled — do nothing.
+            break;
+          case statusCodes.IN_PROGRESS:
+            break;
+          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+            Toast.show({
+              type: "error",
+              text1: "Google Play Services no disponible",
+              text2: "Actualiza Google Play Services e intenta de nuevo.",
+            });
+            break;
+          default:
+            Toast.show({
+              type: "error",
+              text1: "Error al iniciar sesión con Google",
+              text2: err.message,
+            });
+        }
+      } else {
+        const message =
+          err instanceof Error ? err.message : "Error desconocido";
+        Toast.show({ type: "error", text1: "Error", text2: message });
+      }
     } finally {
       setSubmitting(false);
     }

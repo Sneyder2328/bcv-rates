@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "181478124344",
+    "project_id": "ai-chatbot-a0963",
+    "storage_bucket": "ai-chatbot-a0963.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:181478124344:android:cd9a2afa6ddc7063902fcd",
+        "android_client_info": {
+          "package_name": "com.sneyderangulo.elcambio"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "181478124344-boq2jm0hna62cc9l3fr7m3inomf0pqca.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sneyderangulo.elcambio",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "181478124344-nhci3tkeuleuadotf5fg20nt578n9hl9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARJo14Cu5v0RZuI2-OTyjJ_53JggAU1N0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "181478124344-nhci3tkeuleuadotf5fg20nt578n9hl9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -5,13 +5,17 @@
  */
 export {
   AlertTriangle,
+  Check,
   ChevronLeft,
   Eye,
   EyeOff,
   Home,
   LogOut,
   Mail,
+  Pencil,
   Settings,
+  Trash2,
   User,
   WifiOff,
+  X,
 } from "lucide-react-native";
