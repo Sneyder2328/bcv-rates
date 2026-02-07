@@ -58,3 +58,9 @@ export function writeCachedCustomRatesList(
 
   storage.setItem(`${STORAGE_PREFIX}${uid}`, JSON.stringify(value));
 }
+
+export function clearCachedCustomRatesList(uid: string) {
+  const storage = getStorage();
+  if (!storage) return;
+  storage.removeItem(`${STORAGE_PREFIX}${uid}`);
+}

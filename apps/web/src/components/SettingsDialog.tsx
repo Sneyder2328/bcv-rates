@@ -2,9 +2,14 @@ import { Check, Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { track, trackOnce } from "@/analytics/umami";
+import { deleteUser } from "firebase/auth";
 import { useAuth } from "../auth/AuthProvider.tsx";
+import { auth } from "../auth/firebase.ts";
 import { trpc } from "../trpc/client.ts";
-import { writeCachedCustomRatesList } from "../utils/customRatesCache.ts";
+import {
+  clearCachedCustomRatesList,
+  writeCachedCustomRatesList,
+} from "../utils/customRatesCache.ts";
 import { formatRate } from "../utils/formatters.ts";
 import { useOnlineStatus } from "../utils/network.ts";
 import { Input } from "./ui/input.tsx";
@@ -58,10 +63,13 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     },
   });
 
+  const deleteAccountMutation = trpc.account.delete.useMutation();
+
   const [label, setLabel] = useState("");
   const [rate, setRate] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingRate, setEditingRate] = useState("");
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const maxPerUser = listQuery.data?.maxPerUser ?? 10;
   const count = listQuery.data?.items.length ?? 0;
@@ -128,6 +136,56 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     } catch (err) {
       console.error(err);
       toast.error("No se pudo actualizar la tasa");
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (!user) {
+      toast.error("Debes iniciar sesión");
+      return;
+    }
+    if (!isOnline) {
+      toast.error("Sin conexión: modo solo lectura");
+      return;
+    }
+    if (deletingAccount) return;
+
+    const confirmed = window.confirm(
+      "Esto eliminará tu cuenta y tus tasas personalizadas. Esta acción no se puede deshacer.",
+    );
+    if (!confirmed) return;
+
+    setDeletingAccount(true);
+    try {
+      track("account_delete_start");
+      await deleteAccountMutation.mutateAsync();
+
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error("No current user");
+      }
+
+      await deleteUser(currentUser);
+
+      clearCachedCustomRatesList(user.uid);
+      await utils.customRates.list.reset();
+
+      toast.success("Cuenta eliminada");
+      track("account_delete_success");
+      onClose();
+    } catch (err: unknown) {
+      const code =
+        typeof err === "object" && err && "code" in err
+          ? String(err.code)
+          : "";
+      if (code === "auth/requires-recent-login") {
+        toast.error("Vuelve a iniciar sesión y reintenta");
+      } else {
+        toast.error("No se pudo eliminar la cuenta");
+      }
+      track("account_delete_error", { code: code || "unknown" });
+    } finally {
+      setDeletingAccount(false);
     }
   }
 
@@ -356,6 +414,23 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                     Aún no tienes tasas guardadas.
                   </p>
                 )}
+              </div>
+
+              <div className="pt-4 border-t border-zinc-800/60 space-y-3">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-100">Cuenta</p>
+                  <p className="text-xs text-zinc-500">
+                    Eliminar tu cuenta borra tus tasas personalizadas.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void handleDeleteAccount()}
+                  disabled={deletingAccount || !isOnline}
+                  className="w-full rounded-xl border border-red-500/60 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-200 hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                >
+                  {deletingAccount ? "Eliminando…" : "Eliminar cuenta"}
+                </button>
               </div>
             </>
           )}
