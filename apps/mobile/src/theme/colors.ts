@@ -1,6 +1,6 @@
 /**
- * Theme color definitions for light and dark modes
- * Based on Tailwind CSS color palette for consistency with web app
+ * Theme color definitions for light and dark modes.
+ * Based on Tailwind CSS color palette for consistency with the web app.
  */
 
 export interface ThemeColors {
@@ -47,87 +47,69 @@ export interface ThemeColors {
 }
 
 export const lightColors: ThemeColors = {
-  // Backgrounds
-  background: "#f9fafb", // gray-50
+  background: "#f9fafb",
   backgroundSecondary: "#ffffff",
   cardBackground: "#ffffff",
   cardShadow: "#000000",
 
-  // Text
-  text: "#111827", // gray-900
-  textSecondary: "#374151", // gray-700
-  textMuted: "#6b7280", // gray-500
+  text: "#111827",
+  textSecondary: "#374151",
+  textMuted: "#6b7280",
 
-  // Borders
-  border: "#e5e7eb", // gray-200
-  borderError: "#ef4444", // red-500
+  border: "#e5e7eb",
+  borderError: "#ef4444",
 
-  // Primary (blue)
-  primary: "#2563eb", // blue-600
+  primary: "#2563eb",
   primaryText: "#ffffff",
 
-  // Secondary (slate)
-  secondary: "#64748b", // slate-500
+  secondary: "#64748b",
   secondaryText: "#ffffff",
 
-  // Banners
-  bannerInfo: { bg: "#dbeafe", text: "#1e40af" }, // blue-100, blue-800
-  bannerSuccess: { bg: "#dcfce7", text: "#166534" }, // green-100, green-800
-  bannerWarning: { bg: "#fef3c7", text: "#92400e" }, // amber-100, amber-800
-  bannerError: { bg: "#fee2e2", text: "#991b1b" }, // red-100, red-800
+  bannerInfo: { bg: "#dbeafe", text: "#1e40af" },
+  bannerSuccess: { bg: "#dcfce7", text: "#166534" },
+  bannerWarning: { bg: "#fef3c7", text: "#92400e" },
+  bannerError: { bg: "#fee2e2", text: "#991b1b" },
 
-  // Input
-  inputBackground: "#f9fafb", // gray-50
-  inputBorder: "#e5e7eb", // gray-200
-  inputText: "#111827", // gray-900
-  inputPlaceholder: "#9ca3af", // gray-400
+  inputBackground: "#f9fafb",
+  inputBorder: "#e5e7eb",
+  inputText: "#111827",
+  inputPlaceholder: "#9ca3af",
 
-  // Divider
-  divider: "#e5e7eb", // gray-200
+  divider: "#e5e7eb",
 
-  // Disabled states
-  disabledText: "#9ca3af", // gray-400
+  disabledText: "#9ca3af",
 };
 
 export const darkColors: ThemeColors = {
-  // Backgrounds
-  background: "#111827", // gray-900
-  backgroundSecondary: "#1f2937", // gray-800
-  cardBackground: "#1f2937", // gray-800
+  background: "#111827",
+  backgroundSecondary: "#1f2937",
+  cardBackground: "#1f2937",
   cardShadow: "#000000",
 
-  // Text
-  text: "#f9fafb", // gray-50
-  textSecondary: "#e5e7eb", // gray-200
-  textMuted: "#9ca3af", // gray-400
+  text: "#f9fafb",
+  textSecondary: "#e5e7eb",
+  textMuted: "#9ca3af",
 
-  // Borders
-  border: "#374151", // gray-700
-  borderError: "#f87171", // red-400
+  border: "#374151",
+  borderError: "#f87171",
 
-  // Primary (blue)
-  primary: "#3b82f6", // blue-500
+  primary: "#3b82f6",
   primaryText: "#ffffff",
 
-  // Secondary (slate)
-  secondary: "#94a3b8", // slate-400
-  secondaryText: "#1e293b", // slate-800
+  secondary: "#94a3b8",
+  secondaryText: "#1e293b",
 
-  // Banners
-  bannerInfo: { bg: "#1e3a5f", text: "#93c5fd" }, // custom dark blue, blue-300
-  bannerSuccess: { bg: "#14532d", text: "#86efac" }, // green-900, green-300
-  bannerWarning: { bg: "#78350f", text: "#fcd34d" }, // amber-900, amber-300
-  bannerError: { bg: "#7f1d1d", text: "#fca5a5" }, // red-900, red-300
+  bannerInfo: { bg: "#1e3a5f", text: "#93c5fd" },
+  bannerSuccess: { bg: "#14532d", text: "#86efac" },
+  bannerWarning: { bg: "#78350f", text: "#fcd34d" },
+  bannerError: { bg: "#7f1d1d", text: "#fca5a5" },
 
-  // Input
-  inputBackground: "#374151", // gray-700
-  inputBorder: "#4b5563", // gray-600
-  inputText: "#f9fafb", // gray-50
-  inputPlaceholder: "#9ca3af", // gray-400
+  inputBackground: "#374151",
+  inputBorder: "#4b5563",
+  inputText: "#f9fafb",
+  inputPlaceholder: "#9ca3af",
 
-  // Divider
-  divider: "#374151", // gray-700
+  divider: "#374151",
 
-  // Disabled states
-  disabledText: "#6b7280", // gray-500
+  disabledText: "#6b7280",
 };
