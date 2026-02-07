@@ -5,6 +5,7 @@
  */
 export {
   AlertTriangle,
+  BarChart3,
   Check,
   ChevronLeft,
   Eye,
@@ -15,6 +16,7 @@ export {
   Pencil,
   Settings,
   Trash2,
+  TrendingUp,
   User,
   WifiOff,
   X,

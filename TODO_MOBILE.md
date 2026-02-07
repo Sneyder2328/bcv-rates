@@ -182,23 +182,23 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
 
 ---
 
-## Phase 7 — History chart (USD/EUR; 7/14/30/90d)
+## Phase 7 — History chart (USD/EUR; 7/14/30/90d) ✅
 **Goal:** authenticated users can view history; chart is smooth on Android.
 
-- [ ] Data
-  - [ ] `historicalRates.getHistory` query `{ currency, limit }`
-  - [ ] Loading/empty/error states
-- [ ] Dates
-  - [ ] Use `@bcv-rates/domain` date helpers (timezone-safe)
-- [ ] Chart
-  - [ ] Install `react-native-gifted-charts`
-  - [ ] Line/area chart with tooltip
-  - [ ] Currency toggle (USD/EUR), range selector (7/14/30/90)
-- [ ] Performance
-  - [ ] Memoize series transformations
-  - [ ] Avoid unnecessary re-renders
+- [x] Data
+  - [x] `historicalRates.getHistory` query `{ currency, limit }`
+  - [x] Loading/empty/error states
+- [x] Dates
+  - [x] Use `@bcv-rates/domain` date helpers (timezone-safe)
+- [x] Chart
+  - [x] Install `react-native-gifted-charts`
+  - [x] Line/area chart with tooltip (pointer config)
+  - [x] Currency toggle (USD/EUR), range selector (7/14/30/90)
+- [x] Performance
+  - [x] Memoize series transformations
+  - [x] Avoid unnecessary re-renders (useCallback, useMemo)
 
-**Exit criteria:** chart loads correctly and doesn't jank on mid-range Android.
+**Exit criteria:** chart loads correctly and doesn't jank on mid-range Android. ✅
 
 ---
 
@@ -263,19 +263,19 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
 
 ---
 
-## Phase 11 — Native Google Sign-In (UX upgrade)
+## Phase 11 — Native Google Sign-In (UX upgrade) ✅
 **Goal:** replace browser-based Google auth with native one-tap sign-in for a smoother UX.
 
-- [ ] Install `@react-native-google-signin/google-signin`
-- [ ] Add config plugin to `app.config.ts`
-- [ ] Create platform-specific OAuth client IDs
-  - [ ] Android: Google Cloud Console → OAuth client → Android (needs SHA-1 + package name)
+- [x] Install `@react-native-google-signin/google-signin`
+- [x] Add config plugin to `app.config.ts`
+- [x] Create platform-specific OAuth client IDs
+  - [x] Android: Google Cloud Console → OAuth client → Android (needs SHA-1 + package name)
   - [ ] iOS: Google Cloud Console → OAuth client → iOS (needs bundle ID)
-- [ ] Update `app/auth.tsx` to use `GoogleSignin.signIn()` instead of `AuthRequest.promptAsync`
-- [ ] Rebuild native projects (`expo run:android`, `expo run:ios`)
-- [ ] Verify sign-in flow on both platforms
+- [x] Update `app/auth.tsx` to use `GoogleSignin.signIn()` instead of `AuthRequest.promptAsync`
+- [x] Rebuild native projects (`expo run:android`)
+- [x] Verify sign-in flow on Android
 
-**Exit criteria:** native account picker appears instead of browser redirect; Firebase auth still works.
+**Exit criteria:** native account picker appears instead of browser redirect; Firebase auth still works. ✅ Android verified.
 
 ---
 

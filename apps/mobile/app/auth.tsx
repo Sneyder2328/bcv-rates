@@ -1,12 +1,6 @@
-import {
-  GoogleSignin,
-  isErrorWithCode,
-  isSuccessResponse,
-  statusCodes,
-} from "@react-native-google-signin/google-signin";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -22,6 +16,27 @@ import { useAuth } from "../src/auth";
 import { Button, Card, Input, Label } from "../src/components/primitives";
 import { ChevronLeft, Eye, EyeOff, Mail, User } from "../src/icons";
 import { type ThemeColors, useTheme } from "../src/theme";
+
+// ---------------------------------------------------------------------------
+// Lazy-load @react-native-google-signin so the app doesn't crash in Expo Go
+// (the native module RNGoogleSignin is only available in development builds).
+// ---------------------------------------------------------------------------
+type GoogleSignInModule =
+  typeof import("@react-native-google-signin/google-signin");
+
+let _gsiModule: GoogleSignInModule | null = null;
+
+function getGoogleSignInModule(): GoogleSignInModule | null {
+  if (_gsiModule) return _gsiModule;
+  try {
+    // require() at runtime — if the native module is missing this will throw
+    _gsiModule =
+      require("@react-native-google-signin/google-signin") as GoogleSignInModule;
+    return _gsiModule;
+  } catch {
+    return null;
+  }
+}
 
 type AuthMode = "login" | "signup";
 
@@ -41,12 +56,16 @@ export default function AuthScreen() {
   const extra = Constants.expoConfig?.extra ?? {};
 
   // ------------------------------------------------------------------
-  // Configure native Google Sign-In once
+  // Configure native Google Sign-In once (only in dev builds)
   // ------------------------------------------------------------------
+  const gsiConfigured = useRef(false);
+
   useEffect(() => {
+    const gsi = getGoogleSignInModule();
     const webClientId = extra.googleWebClientId as string | undefined;
-    if (webClientId) {
-      GoogleSignin.configure({ webClientId });
+    if (gsi && webClientId && !gsiConfigured.current) {
+      gsi.GoogleSignin.configure({ webClientId });
+      gsiConfigured.current = true;
     }
   }, [extra.googleWebClientId]);
 
@@ -54,6 +73,16 @@ export default function AuthScreen() {
   // Google sign-in via native @react-native-google-signin
   // ------------------------------------------------------------------
   const handleGoogleSignIn = useCallback(async () => {
+    const gsi = getGoogleSignInModule();
+    if (!gsi) {
+      Toast.show({
+        type: "error",
+        text1: "Google Sign-In no disponible",
+        text2: "Usa un development build (expo run:android) en vez de Expo Go.",
+      });
+      return;
+    }
+
     const webClientId = extra.googleWebClientId as string | undefined;
     if (!webClientId) {
       Toast.show({
@@ -66,13 +95,13 @@ export default function AuthScreen() {
 
     try {
       setSubmitting(true);
-      await GoogleSignin.hasPlayServices({
+      await gsi.GoogleSignin.hasPlayServices({
         showPlayServicesUpdateDialog: true,
       });
 
-      const response = await GoogleSignin.signIn();
+      const response = await gsi.GoogleSignin.signIn();
 
-      if (isSuccessResponse(response)) {
+      if (gsi.isSuccessResponse(response)) {
         const idToken = response.data.idToken;
         if (!idToken) {
           throw new Error(
@@ -85,14 +114,14 @@ export default function AuthScreen() {
       }
       // If not success, user cancelled — do nothing.
     } catch (err) {
-      if (isErrorWithCode(err)) {
+      if (gsi.isErrorWithCode(err)) {
         switch (err.code) {
-          case statusCodes.SIGN_IN_CANCELLED:
+          case gsi.statusCodes.SIGN_IN_CANCELLED:
             // User cancelled — do nothing.
             break;
-          case statusCodes.IN_PROGRESS:
+          case gsi.statusCodes.IN_PROGRESS:
             break;
-          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+          case gsi.statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
             Toast.show({
               type: "error",
               text1: "Google Play Services no disponible",
