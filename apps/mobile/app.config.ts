@@ -13,16 +13,17 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   splash: {
     image: "./assets/splash-icon.png",
     resizeMode: "contain",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#000000",
   },
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.sneyderangulo.elcambio",
   },
   android: {
+    icon: "./assets/icon.png",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#ffffff",
+      backgroundColor: "#000000",
     },
     edgeToEdgeEnabled: true,
     package: "com.sneyderangulo.elcambio",
