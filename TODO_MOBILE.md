@@ -51,8 +51,8 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
   - [x] `metro.config.js` with `watchFolders` + `nodeModulesPaths`
   - [x] `@bcv-rates/domain` resolves at runtime
 - [x] TypeScript config (`tsconfig.json` extends `expo/tsconfig.base`)
-- [ ] Platform build verification
-  - [ ] Android: `npx expo run:android` builds + app launches
+- [x] Platform build verification
+  - [x] Android: `npx expo run:android` builds + app launches
   - [ ] iOS: `npx expo run:ios` builds + app launches
 
 **Exit criteria:** app renders placeholder on both platforms; `pnpm lint` + `pnpm type-check` pass monorepo-wide.
@@ -91,22 +91,22 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
 ## Phase 3 — Data layer (tRPC + React Query + persistence + offline)
 **Goal:** rates load, persist 30 days, and render offline after first successful load.
 
-- [ ] Online/offline detection
-  - [ ] Install `@react-native-community/netinfo`
-  - [ ] `useOnlineStatus()` hook (bridge React Query `onlineManager`)
-- [ ] React Query setup
-  - [ ] `QueryProvider` with `QueryClient` defaults
-  - [ ] Persist to AsyncStorage (`@tanstack/query-async-storage-persister`)
-  - [ ] maxAge: 30 days
-  - [ ] Respect `meta.persist === true`
-- [ ] tRPC client
-  - [ ] `httpBatchLink` → `${API_BASE_URL}/api/trpc`
-  - [ ] Auth token in `Authorization` header via `setAuthToken`
-  - [ ] Type-only imports from `apps/api/src/trpc/app-router.type.ts`
-- [ ] `useExchangeRates` parity
-  - [ ] `exchangeRates.getLatest` query
-  - [ ] Surface: `rates`, `statusLine`, `syncingRates`, `lastUpdated`
-  - [ ] Offline/error banners with `formatRate` from `@bcv-rates/domain`
+- [x] Online/offline detection
+  - [x] Install `@react-native-community/netinfo`
+  - [x] `useOnlineStatus()` hook (bridge React Query `onlineManager`)
+- [x] React Query setup
+  - [x] `QueryProvider` with `QueryClient` defaults
+  - [x] Persist to AsyncStorage (`@tanstack/query-async-storage-persister`)
+  - [x] maxAge: 30 days
+  - [x] Respect `meta.persist === true`
+- [x] tRPC client
+  - [x] `httpBatchLink` → `${API_BASE_URL}/api/trpc`
+  - [x] Auth token in `Authorization` header via `setAuthToken`
+  - [x] Type-only imports from `apps/api/src/trpc/app-router.type.ts`
+- [x] `useExchangeRates` parity
+  - [x] `exchangeRates.getLatest` query
+  - [x] Surface: `rates`, `statusLine`, `syncingRates`, `lastUpdated`
+  - [x] Offline/error banners with `formatRate` from `@bcv-rates/domain`
 
 **Exit criteria:** kill app → relaunch offline → still see rates if previously loaded.
 

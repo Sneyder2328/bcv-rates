@@ -2,6 +2,9 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import { OnlineStatusProvider } from "../src/hooks/useOnlineStatus";
+import { QueryProvider } from "../src/providers/QueryProvider";
+import { TrpcProvider } from "../src/providers/TrpcProvider";
 import { ThemeProvider, useTheme } from "../src/theme";
 
 function RootLayoutNav() {
@@ -34,7 +37,13 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <RootLayoutNav />
+        <QueryProvider>
+          <TrpcProvider>
+            <OnlineStatusProvider>
+              <RootLayoutNav />
+            </OnlineStatusProvider>
+          </TrpcProvider>
+        </QueryProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );
