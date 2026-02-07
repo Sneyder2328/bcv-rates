@@ -10,6 +10,8 @@ async function bootstrap() {
     origin: process.env.CORS_ORIGINS?.split(","),
   });
   app.setGlobalPrefix("api");
-  await app.listen(Number(process.env.PORT));
+  const port = Number(process.env.PORT);
+  const host = process.env.NODE_ENV === "development" ? "0.0.0.0" : "127.0.0.1";
+  await app.listen(port, host);
 }
 bootstrap();

@@ -6,8 +6,11 @@
 export {
   AlertTriangle,
   ChevronLeft,
+  Eye,
+  EyeOff,
   Home,
   LogOut,
+  Mail,
   Settings,
   User,
   WifiOff,

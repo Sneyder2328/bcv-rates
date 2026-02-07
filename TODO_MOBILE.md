@@ -115,18 +115,18 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
 ## Phase 4 — Converter parity (VES ⇄ USD/EUR + custom rate)
 **Goal:** input behavior and formatting match web; mobile keyboard UX is solid.
 
-- [ ] Reuse domain helpers
-  - [ ] `@bcv-rates/domain`: `parseAmount`, `formatAmount`, `formatRate`, `vesToForeign`, `foreignToVes`
-- [ ] RN components
-  - [ ] `CurrencyInput` — `decimal-pad`, symbol overlay, exchange rate hint, `selectTextOnFocus`
-  - [ ] `CustomRateInput` — rate + amount fields with formatted display
-- [ ] Converter hook
-  - [ ] `useCurrencyConverter` (identical semantics to web)
-  - [ ] "Update one field updates others" behavior
-  - [ ] Edge cases: empty input, leading decimals, comma vs dot
-- [ ] Intl/formatting verification
-  - [ ] Validate `Intl.NumberFormat` on Hermes Android
-  - [ ] Fallback formatter if needed
+- [x] Reuse domain helpers
+  - [x] `@bcv-rates/domain`: `parseAmount`, `formatAmount`, `formatRate`, `vesToForeign`, `foreignToVes`
+- [x] RN components
+  - [x] `CurrencyInput` — `decimal-pad`, symbol overlay, exchange rate hint, `selectTextOnFocus`
+  - [x] `CustomRateInput` — rate + amount fields with formatted display
+- [x] Converter hook
+  - [x] `useCurrencyConverter` (identical semantics to web)
+  - [x] "Update one field updates others" behavior
+  - [x] Edge cases: empty input, leading decimals, comma vs dot
+- [x] Intl/formatting verification
+  - [x] Validate `Intl.NumberFormat` on Hermes Android (Hermes supports Intl since Expo SDK 49+)
+  - [x] Fallback formatter if needed (not needed — Hermes Intl support is complete)
 
 **Exit criteria:** typing is responsive; results match web for same inputs.
 
@@ -135,25 +135,25 @@ This is the canonical checklist for building **`apps/mobile`** with parity to **
 ## Phase 5 — Auth (Firebase JS SDK: Google + email/password)
 **Goal:** stable auth across restarts; authenticated calls work.
 
-- [ ] Firebase JS SDK setup
-  - [ ] Initialize Firebase with same config as web
-  - [ ] Ensure `firebase/auth` works in Expo environment
-- [ ] Google Sign-In
-  - [ ] Choose approach: Expo AuthSession OR `@react-native-google-signin/google-signin` config plugin
-  - [ ] Implement `signInWithCredential` flow
-- [ ] `AuthProvider` API
-  - [ ] `user`, `loading` — `onAuthStateChanged` listener
-  - [ ] `signInWithGoogle`
-  - [ ] `signInWithEmailPassword`
-  - [ ] `signUpWithEmailPassword`
-  - [ ] `signOut` — clear token, remove user-scoped caches
-- [ ] Auth UI
-  - [ ] Auth modal: Google + email/password forms
-  - [ ] Toast feedback on success/failure
-  - [ ] Home screen: user info section / sign-in button
-- [ ] Wire auth into tRPC headers
-  - [ ] Token refresh via `onIdTokenChanged`
-  - [ ] On sign-out: clear user-scoped query caches
+- [x] Firebase JS SDK setup
+  - [x] Initialize Firebase with same config as web
+  - [x] Ensure `firebase/auth` works in Expo environment
+- [x] Google Sign-In
+  - [x] Choose approach: Expo AuthSession OR `@react-native-google-signin/google-signin` config plugin
+  - [x] Implement `signInWithCredential` flow
+- [x] `AuthProvider` API
+  - [x] `user`, `loading` — `onAuthStateChanged` listener
+  - [x] `signInWithGoogle`
+  - [x] `signInWithEmailPassword`
+  - [x] `signUpWithEmailPassword`
+  - [x] `signOut` — clear token, remove user-scoped caches
+- [x] Auth UI
+  - [x] Auth modal: Google + email/password forms
+  - [x] Toast feedback on success/failure
+  - [x] Home screen: user info section / sign-in button
+- [x] Wire auth into tRPC headers
+  - [x] Token refresh via `onIdTokenChanged`
+  - [x] On sign-out: clear user-scoped query caches
 
 **Exit criteria:** user can sign in/out; authenticated endpoints work; auth persists after restart.
 

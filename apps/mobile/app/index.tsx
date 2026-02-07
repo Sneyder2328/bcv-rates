@@ -1,3 +1,4 @@
+import { formatAmount } from "@bcv-rates/domain";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import {
@@ -8,21 +9,66 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Banner, Button, Card } from "../src/components/primitives";
+import Toast from "react-native-toast-message";
+import { useAuth } from "../src/auth";
+import { CurrencyInput } from "../src/components/CurrencyInput";
+import { CustomRateInput } from "../src/components/CustomRateInput";
+import {
+  Banner,
+  Button,
+  Card,
+  SectionDivider,
+} from "../src/components/primitives";
+import { useCurrencyConverter } from "../src/hooks/useCurrencyConverter";
 import {
   formatRateDisplay,
   useExchangeRates,
 } from "../src/hooks/useExchangeRates";
-import { Home, Settings, WifiOff } from "../src/icons";
+import { Home, LogOut, Settings, User, WifiOff } from "../src/icons";
 import { type ThemeColors, useTheme } from "../src/theme";
 
 export default function HomeScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const styles = useMemo(() => getStyles(colors), [colors]);
+  const { user, loading: authLoading, signOut } = useAuth();
 
   const { rates, error, isLoading, syncingRates, statusLine, isOnline } =
     useExchangeRates();
+
+  const {
+    bolivars,
+    usd,
+    eur,
+    customRate,
+    customAmount,
+    onBolivarsChange,
+    onUsdChange,
+    onEurChange,
+    onCustomRateChange,
+    onCustomAmountChange,
+  } = useCurrencyConverter(rates);
+
+  const disabled = !rates;
+
+  const usdDelta =
+    rates?.usdPrevious != null
+      ? ((rates.usd - rates.usdPrevious) / rates.usdPrevious) * 100
+      : undefined;
+
+  const eurDelta =
+    rates?.eurPrevious != null
+      ? ((rates.eur - rates.eurPrevious) / rates.eurPrevious) * 100
+      : undefined;
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      Toast.show({ type: "success", text1: "Sesión cerrada" });
+    } catch {
+      Toast.show({ type: "error", text1: "Error al cerrar sesión" });
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -117,12 +163,62 @@ export default function HomeScreen() {
           {rates && <Text style={styles.statusLine}>{statusLine}</Text>}
         </Card>
 
-        {/* Converter placeholder */}
+        {/* Converter */}
         <Card style={styles.card}>
-          <Text style={styles.cardTitle}>Convertidor</Text>
-          <Text style={styles.cardSubtitle}>
-            Currency converter coming in Phase 4.
-          </Text>
+          {/* VES input */}
+          <CurrencyInput
+            label="Bolívares (VES)"
+            value={bolivars}
+            onChangeText={onBolivarsChange}
+            disabled={disabled}
+            symbol="Bs."
+            focusColor="indigo"
+            inputSize="lg"
+          />
+
+          <SectionDivider label="Tasas de Cambio" />
+
+          {/* USD / EUR side-by-side on wider screens, stacked on narrow */}
+          <View style={styles.converterRow}>
+            <View style={styles.converterCol}>
+              <CurrencyInput
+                label="Dólares (USD)"
+                value={usd}
+                onChangeText={onUsdChange}
+                disabled={disabled}
+                symbol="$"
+                focusColor="emerald"
+                exchangeRate={
+                  rates ? `1 USD = ${formatAmount(rates.usd)} Bs` : undefined
+                }
+                deltaPercent={usdDelta}
+              />
+            </View>
+            <View style={styles.converterCol}>
+              <CurrencyInput
+                label="Euros (EUR)"
+                value={eur}
+                onChangeText={onEurChange}
+                disabled={disabled}
+                symbol="€"
+                focusColor="blue"
+                exchangeRate={
+                  rates ? `1 EUR = ${formatAmount(rates.eur)} Bs` : undefined
+                }
+                deltaPercent={eurDelta}
+              />
+            </View>
+          </View>
+
+          <SectionDivider label="Tasa Personalizada" />
+
+          <CustomRateInput
+            rateValue={customRate}
+            amountValue={customAmount}
+            onRateChange={onCustomRateChange}
+            onAmountChange={onCustomAmountChange}
+            disabled={disabled}
+          />
         </Card>
 
         {/* Navigation buttons */}
@@ -136,14 +232,50 @@ export default function HomeScreen() {
           </Button>
         </View>
 
-        {/* Auth placeholder */}
-        <Button
-          variant="outline"
-          onPress={() => router.push("/auth")}
-          style={styles.authButton}
-        >
-          Iniciar sesión
-        </Button>
+        {/* Auth section */}
+        {authLoading ? null : user ? (
+          <Card style={styles.userCard}>
+            <View style={styles.userRow}>
+              <View style={styles.avatarCircle}>
+                <Text style={styles.avatarText}>
+                  {(user.displayName ?? user.email ?? "?")
+                    .charAt(0)
+                    .toUpperCase()}
+                </Text>
+              </View>
+              <View style={styles.userInfo}>
+                {user.displayName ? (
+                  <Text
+                    style={styles.userName}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {user.displayName}
+                  </Text>
+                ) : null}
+                <Text
+                  style={styles.userEmail}
+                  numberOfLines={1}
+                  ellipsizeMode="middle"
+                >
+                  {user.email ?? user.uid}
+                </Text>
+              </View>
+              <Button variant="ghost" onPress={handleSignOut}>
+                <LogOut size={20} color={colors.textMuted} />
+              </Button>
+            </View>
+          </Card>
+        ) : (
+          <Button
+            variant="outline"
+            onPress={() => router.push("/auth")}
+            style={styles.authButton}
+          >
+            <User size={18} color={colors.textSecondary} />
+            Iniciar sesión
+          </Button>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -328,6 +460,14 @@ const getStyles = (colors: ThemeColors) =>
       fontSize: 14,
       color: colors.textMuted,
     },
+    // Converter
+    converterRow: {
+      flexDirection: "row",
+      gap: 12,
+    },
+    converterCol: {
+      flex: 1,
+    },
     navButtons: {
       flexDirection: "row",
       gap: 12,
@@ -336,7 +476,41 @@ const getStyles = (colors: ThemeColors) =>
     navButton: {
       flex: 1,
     },
+    // Auth section
     authButton: {
       marginTop: 4,
+    },
+    userCard: {
+      marginTop: 4,
+    },
+    userRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    avatarCircle: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarText: {
+      fontSize: 16,
+      fontWeight: "700",
+      color: colors.primaryText,
+    },
+    userInfo: {
+      flex: 1,
+    },
+    userName: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: colors.text,
+    },
+    userEmail: {
+      fontSize: 12,
+      color: colors.textMuted,
     },
   });

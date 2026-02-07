@@ -44,6 +44,12 @@ export interface ThemeColors {
 
   // Disabled states
   disabledText: string;
+
+  // Accent colors (converter)
+  accentIndigo: string;
+  accentEmerald: string;
+  accentBlue: string;
+  accentViolet: string;
 }
 
 export const lightColors: ThemeColors = {
@@ -78,6 +84,11 @@ export const lightColors: ThemeColors = {
   divider: "#e5e7eb",
 
   disabledText: "#9ca3af",
+
+  accentIndigo: "#6366f1",
+  accentEmerald: "#10b981",
+  accentBlue: "#3b82f6",
+  accentViolet: "#8b5cf6",
 };
 
 export const darkColors: ThemeColors = {
@@ -112,4 +123,9 @@ export const darkColors: ThemeColors = {
   divider: "#374151",
 
   disabledText: "#6b7280",
+
+  accentIndigo: "#818cf8",
+  accentEmerald: "#34d399",
+  accentBlue: "#60a5fa",
+  accentViolet: "#a78bfa",
 };

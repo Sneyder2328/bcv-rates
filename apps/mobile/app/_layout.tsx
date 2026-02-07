@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import { AuthProvider } from "../src/auth";
 import { OnlineStatusProvider } from "../src/hooks/useOnlineStatus";
 import { QueryProvider } from "../src/providers/QueryProvider";
 import { TrpcProvider } from "../src/providers/TrpcProvider";
@@ -37,13 +38,15 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <QueryProvider>
-          <TrpcProvider>
-            <OnlineStatusProvider>
-              <RootLayoutNav />
-            </OnlineStatusProvider>
-          </TrpcProvider>
-        </QueryProvider>
+        <AuthProvider>
+          <QueryProvider>
+            <TrpcProvider>
+              <OnlineStatusProvider>
+                <RootLayoutNav />
+              </OnlineStatusProvider>
+            </TrpcProvider>
+          </QueryProvider>
+        </AuthProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );
