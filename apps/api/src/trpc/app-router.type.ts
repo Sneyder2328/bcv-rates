@@ -50,6 +50,13 @@ const customRatesListOutputSchema = z.object({
 });
 
 export const appRouterType = t.router({
+  account: t.router({
+    delete: t.procedure
+      .output(z.object({ ok: z.literal(true) }))
+      .mutation(() => {
+        throw new Error("Not implemented (type-only router)");
+      }),
+  }),
   exchangeRates: t.router({
     getLatest: t.procedure
       .output(latestRatesResponseSchema)

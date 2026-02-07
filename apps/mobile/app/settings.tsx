@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,10 +10,12 @@ import {
   TextInput,
   View,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+import { deleteUser } from "firebase/auth";
 import { track, trackOnce } from "../src/analytics/umami";
-import { useAuth } from "../src/auth";
+import { auth, useAuth } from "../src/auth";
 import { Banner, Button, Card } from "../src/components/primitives";
 import { formatCustomRate, useCustomRates } from "../src/hooks/useCustomRates";
 import { useOnlineStatus } from "../src/hooks/useOnlineStatus";
@@ -25,7 +28,9 @@ import {
   WifiOff,
   X,
 } from "../src/icons";
+import { queryClient } from "../src/providers/QueryProvider";
 import { type ThemeColors, useTheme } from "../src/theme";
+import { getTrpcClient, setAuthToken } from "../src/lib/trpcClient";
 
 export default function SettingsScreen() {
   const { colors } = useTheme();
@@ -53,6 +58,7 @@ export default function SettingsScreen() {
   // ---- Inline-edit state ----
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingRate, setEditingRate] = useState("");
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const readOnly = !isOnline;
   const mutating =
@@ -122,6 +128,76 @@ export default function SettingsScreen() {
     } catch {
       Toast.show({ type: "error", text1: "No se pudo eliminar la tasa" });
     }
+  }
+
+  async function confirmDeleteAccount() {
+    if (!user) {
+      Toast.show({ type: "error", text1: "Debes iniciar sesión" });
+      return;
+    }
+    if (readOnly) {
+      Toast.show({ type: "error", text1: "Sin conexión: modo solo lectura" });
+      return;
+    }
+    if (deletingAccount) return;
+
+    setDeletingAccount(true);
+    try {
+      track("account_delete_start");
+      await getTrpcClient().account.delete.mutate();
+
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error("No current user");
+      }
+
+      await deleteUser(currentUser);
+
+      setAuthToken(undefined);
+      queryClient.clear();
+      await AsyncStorage.removeItem("bcv-rates-react-query-cache");
+      await AsyncStorage.removeItem("umami.distinctId");
+
+      Toast.show({
+        type: "success",
+        text1: "Cuenta eliminada",
+      });
+      track("account_delete_success");
+    } catch (err: unknown) {
+      const code =
+        typeof err === "object" && err && "code" in err
+          ? String(err.code)
+          : "";
+      if (code === "auth/requires-recent-login") {
+        Toast.show({
+          type: "error",
+          text1: "Vuelve a iniciar sesión y reintenta",
+        });
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "No se pudo eliminar la cuenta",
+        });
+      }
+      track("account_delete_error", { code: code || "unknown" });
+    } finally {
+      setDeletingAccount(false);
+    }
+  }
+
+  function handleDeleteAccount() {
+    Alert.alert(
+      "Eliminar cuenta",
+      "Esto eliminará tu cuenta y tus tasas personalizadas. Esta acción no se puede deshacer.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: () => void confirmDeleteAccount(),
+        },
+      ],
+    );
   }
 
   return (
@@ -395,6 +471,28 @@ export default function SettingsScreen() {
                 </Text>
               )}
             </Card>
+
+            {/* ---- Account ---- */}
+            <Card style={styles.card}>
+              <Text style={styles.sectionTitle}>Cuenta</Text>
+              <Text style={styles.deleteHint}>
+                Eliminar tu cuenta borra tus tasas personalizadas y te saca de la
+                sesión.
+              </Text>
+              <Button
+                variant="outline"
+                onPress={handleDeleteAccount}
+                disabled={deletingAccount || readOnly}
+                style={[
+                  styles.deleteButton,
+                  { borderColor: colors.borderError },
+                ]}
+              >
+                <Text style={[styles.deleteButtonText, { color: colors.borderError }]}>
+                  {deletingAccount ? "Eliminando…" : "Eliminar cuenta"}
+                </Text>
+              </Button>
+            </Card>
           </>
         )}
       </ScrollView>
@@ -574,6 +672,21 @@ const getStyles = (colors: ThemeColors) =>
       paddingHorizontal: 10,
       fontSize: 14,
       marginTop: 4,
+    },
+
+    // Delete account
+    deleteHint: {
+      fontSize: 13,
+      color: colors.textMuted,
+      marginTop: 6,
+      marginBottom: 12,
+    },
+    deleteButton: {
+      justifyContent: "center",
+    },
+    deleteButtonText: {
+      fontSize: 14,
+      fontWeight: "600",
     },
 
     // Action buttons
