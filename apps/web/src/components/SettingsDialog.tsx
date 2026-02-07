@@ -70,6 +70,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingRate, setEditingRate] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const maxPerUser = listQuery.data?.maxPerUser ?? 10;
   const count = listQuery.data?.items.length ?? 0;
@@ -150,11 +151,6 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     }
     if (deletingAccount) return;
 
-    const confirmed = window.confirm(
-      "Esto eliminará tu cuenta y tus tasas personalizadas. Esta acción no se puede deshacer.",
-    );
-    if (!confirmed) return;
-
     setDeletingAccount(true);
     try {
       track("account_delete_start");
@@ -173,6 +169,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
       toast.success("Cuenta eliminada");
       track("account_delete_success");
       onClose();
+      setShowDeleteConfirm(false);
     } catch (err: unknown) {
       const code =
         typeof err === "object" && err && "code" in err
@@ -425,7 +422,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                 </div>
                 <button
                   type="button"
-                  onClick={() => void handleDeleteAccount()}
+                  onClick={() => setShowDeleteConfirm(true)}
                   disabled={deletingAccount || !isOnline}
                   className="w-full rounded-xl border border-red-500/60 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-200 hover:bg-red-500/20 transition-colors disabled:opacity-50"
                 >
@@ -436,6 +433,44 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           )}
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            aria-label="Close"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowDeleteConfirm(false)}
+          />
+          <div className="relative z-10 w-full max-w-sm rounded-2xl border border-zinc-800/60 bg-zinc-900/90 p-5 ring-1 ring-white/10 shadow-2xl">
+            <h3 className="text-base font-semibold text-zinc-100">
+              Eliminar cuenta
+            </h3>
+            <p className="mt-2 text-sm text-zinc-400">
+              Esto eliminará tu cuenta y tus tasas personalizadas. Esta acción
+              no se puede deshacer.
+            </p>
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deletingAccount}
+                className="rounded-xl border border-zinc-800/80 bg-zinc-950/40 px-3 py-2 text-sm font-semibold text-zinc-200 hover:bg-zinc-900/60 transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleDeleteAccount()}
+                disabled={deletingAccount}
+                className="rounded-xl border border-red-500/60 bg-red-500/20 px-3 py-2 text-sm font-semibold text-red-200 hover:bg-red-500/30 transition-colors disabled:opacity-50"
+              >
+                {deletingAccount ? "Eliminando…" : "Eliminar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
