@@ -1,8 +1,8 @@
+import { deleteUser } from "firebase/auth";
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { track, trackOnce } from "@/analytics/umami";
-import { deleteUser } from "firebase/auth";
 import { useAuth } from "../auth/AuthProvider.tsx";
 import { auth } from "../auth/firebase.ts";
 import { trpc } from "../trpc/client.ts";
@@ -172,9 +172,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
       setShowDeleteConfirm(false);
     } catch (err: unknown) {
       const code =
-        typeof err === "object" && err && "code" in err
-          ? String(err.code)
-          : "";
+        typeof err === "object" && err && "code" in err ? String(err.code) : "";
       if (code === "auth/requires-recent-login") {
         toast.error("Vuelve a iniciar sesión y reintenta");
       } else {

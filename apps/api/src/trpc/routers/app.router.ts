@@ -1,9 +1,9 @@
 // biome-ignore lint/style/useImportType: PrismaService must be a runtime import so NestJS can emit DI metadata for constructor injection.
 import { PrismaService } from "@/prisma/prisma.service";
+import { createAccountRouter } from "@/trpc/routers/account.router";
 import { createCustomRatesRouter } from "@/trpc/routers/custom-rates.router";
 import { createExchangeRatesRouter } from "@/trpc/routers/exchange-rates.router";
 import { createHistoricalRatesRouter } from "@/trpc/routers/historical-rates.router";
-import { createAccountRouter } from "@/trpc/routers/account.router";
 import { router } from "@/trpc/trpc";
 
 /**

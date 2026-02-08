@@ -1,4 +1,6 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
+import { deleteUser } from "firebase/auth";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -10,10 +12,8 @@ import {
   TextInput,
   View,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import { deleteUser } from "firebase/auth";
 import { track, trackOnce } from "../src/analytics/umami";
 import { auth, useAuth } from "../src/auth";
 import { Banner, Button, Card } from "../src/components/primitives";
@@ -28,9 +28,9 @@ import {
   WifiOff,
   X,
 } from "../src/icons";
+import { getTrpcClient, setAuthToken } from "../src/lib/trpcClient";
 import { queryClient } from "../src/providers/QueryProvider";
 import { type ThemeColors, useTheme } from "../src/theme";
-import { getTrpcClient, setAuthToken } from "../src/lib/trpcClient";
 
 export default function SettingsScreen() {
   const { colors } = useTheme();
@@ -165,9 +165,7 @@ export default function SettingsScreen() {
       track("account_delete_success");
     } catch (err: unknown) {
       const code =
-        typeof err === "object" && err && "code" in err
-          ? String(err.code)
-          : "";
+        typeof err === "object" && err && "code" in err ? String(err.code) : "";
       if (code === "auth/requires-recent-login") {
         Toast.show({
           type: "error",
@@ -476,8 +474,8 @@ export default function SettingsScreen() {
             <Card style={styles.card}>
               <Text style={styles.sectionTitle}>Cuenta</Text>
               <Text style={styles.deleteHint}>
-                Eliminar tu cuenta borra tus tasas personalizadas y te saca de la
-                sesión.
+                Eliminar tu cuenta borra tus tasas personalizadas y te saca de
+                la sesión.
               </Text>
               <Button
                 variant="outline"
@@ -488,7 +486,12 @@ export default function SettingsScreen() {
                   { borderColor: colors.borderError },
                 ]}
               >
-                <Text style={[styles.deleteButtonText, { color: colors.borderError }]}>
+                <Text
+                  style={[
+                    styles.deleteButtonText,
+                    { color: colors.borderError },
+                  ]}
+                >
                   {deletingAccount ? "Eliminando…" : "Eliminar cuenta"}
                 </Text>
               </Button>

@@ -20,6 +20,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: "com.sneyderangulo.elcambio",
   },
   android: {
+    // Workaround for EAS Linux builds failing to execute Hermes compiler (hermesc)
+    // during `:app:createBundleReleaseJsAndAssets`.
+    jsEngine: "jsc",
     icon: "./assets/icon.png",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
@@ -31,6 +34,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: ["expo-router", "@react-native-google-signin/google-signin"],
   extra: {
+    eas: {
+      projectId: "dc72637c-307d-494a-9a86-aec419a7cc62",
+    },
     apiBaseUrl: process.env.API_BASE_URL || "",
     // Umami analytics (gated by UMAMI_ENABLED)
     umamiEnabled: process.env.UMAMI_ENABLED === "true",
