@@ -1,4 +1,52 @@
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import type { ConfigContext, ExpoConfig } from "expo/config";
+
+const REQUIRED_ENV_KEYS = [
+  "API_BASE_URL",
+  "FIREBASE_API_KEY",
+  "FIREBASE_AUTH_DOMAIN",
+  "FIREBASE_PROJECT_ID",
+  "FIREBASE_APP_ID",
+  "FIREBASE_MESSAGING_SENDER_ID",
+  "FIREBASE_STORAGE_BUCKET",
+  "GOOGLE_WEB_CLIENT_ID",
+] as const;
+
+function loadEnvFile(filePath: string) {
+  const raw = readFileSync(filePath, "utf8");
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+
+    const equalIndex = trimmed.indexOf("=");
+    if (equalIndex <= 0) continue;
+
+    const key = trimmed.slice(0, equalIndex).trim();
+    let value = trimmed.slice(equalIndex + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+
+    if (!process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+}
+
+const envPath = path.resolve(__dirname, ".env");
+if (existsSync(envPath)) {
+  loadEnvFile(envPath);
+}
+
+for (const key of REQUIRED_ENV_KEYS) {
+  if (!process.env[key]) {
+    console.warn(`[app.config] Missing ${key} while generating Expo config.`);
+  }
+}
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -20,9 +68,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: "com.sneyderangulo.elcambio",
   },
   android: {
-    // Workaround for EAS Linux builds failing to execute Hermes compiler (hermesc)
-    // during `:app:createBundleReleaseJsAndAssets`.
-    jsEngine: "jsc",
+    jsEngine: "hermes",
     icon: "./assets/icon.png",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
