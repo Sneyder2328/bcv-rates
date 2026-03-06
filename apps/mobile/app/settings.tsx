@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -22,8 +23,11 @@ import { useOnlineStatus } from "../src/hooks/useOnlineStatus";
 import {
   Check,
   ChevronLeft,
+  ExternalLink,
+  Info,
   Pencil,
   Settings,
+  Shield,
   Trash2,
   WifiOff,
   X,
@@ -498,6 +502,32 @@ export default function SettingsScreen() {
             </Card>
           </>
         )}
+
+        {/* About / Legal */}
+        <Card style={styles.card}>
+          <Text style={styles.sectionTitle}>Acerca de</Text>
+          <View style={styles.aboutDisclaimer}>
+            <Info size={14} color={colors.textMuted} />
+            <Text style={styles.aboutDisclaimerText}>
+              Esta aplicación es solo para fines informativos. No constituye
+              asesoramiento financiero, de inversión ni de ningún otro tipo. Las
+              tasas se obtienen del Banco Central de Venezuela (BCV).
+            </Text>
+          </View>
+          <Button
+            variant="ghost"
+            onPress={() =>
+              Linking.openURL(
+                "https://cambio.sneyderangulo.com/privacy-policy.html",
+              )
+            }
+            style={styles.privacyLink}
+          >
+            <Shield size={14} color={colors.textMuted} />
+            <Text style={styles.privacyLinkText}>Política de Privacidad</Text>
+            <ExternalLink size={12} color={colors.textMuted} />
+          </Button>
+        </Card>
       </ScrollView>
     </SafeAreaView>
   );
@@ -710,5 +740,31 @@ const getStyles = (colors: ThemeColors) =>
     },
     pressed: {
       opacity: 0.6,
+    },
+
+    // About / Legal
+    aboutDisclaimer: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 8,
+      marginTop: 8,
+      paddingTop: 2,
+    },
+    aboutDisclaimerText: {
+      flex: 1,
+      fontSize: 12,
+      lineHeight: 18,
+      color: colors.textMuted,
+    },
+    privacyLink: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      marginTop: 12,
+      alignSelf: "flex-start",
+    },
+    privacyLinkText: {
+      fontSize: 13,
+      color: colors.textMuted,
     },
   });

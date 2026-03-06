@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -27,7 +28,16 @@ import {
   formatRateDisplay,
   useExchangeRates,
 } from "../src/hooks/useExchangeRates";
-import { Home, LogOut, Settings, User, WifiOff } from "../src/icons";
+import {
+  ExternalLink,
+  Home,
+  Info,
+  LogOut,
+  Settings,
+  Shield,
+  User,
+  WifiOff,
+} from "../src/icons";
 import { type ThemeColors, useTheme } from "../src/theme";
 
 export default function HomeScreen() {
@@ -327,6 +337,35 @@ export default function HomeScreen() {
             </Text>
           </Button>
         )}
+
+        {/* Footer: disclaimer, source, privacy */}
+        <View style={styles.footer}>
+          <View style={styles.disclaimerRow}>
+            <Info size={14} color={colors.textMuted} />
+            <Text style={styles.disclaimerText}>
+              Esta aplicación es solo para fines informativos. No constituye
+              asesoramiento financiero, de inversión ni de ningún otro tipo.
+            </Text>
+          </View>
+          <Text style={styles.sourceText}>
+            Fuente: Banco Central de Venezuela (BCV)
+          </Text>
+          <View style={styles.footerLinks}>
+            <Button
+              variant="ghost"
+              onPress={() =>
+                Linking.openURL(
+                  "https://cambio.sneyderangulo.com/privacy-policy.html",
+                )
+              }
+              style={styles.footerLink}
+            >
+              <Shield size={14} color={colors.textMuted} />
+              <Text style={styles.footerLinkText}>Política de Privacidad</Text>
+              <ExternalLink size={12} color={colors.textMuted} />
+            </Button>
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -561,6 +600,43 @@ const getStyles = (colors: ThemeColors) =>
       color: colors.text,
     },
     userEmail: {
+      fontSize: 12,
+      color: colors.textMuted,
+    },
+    // Footer
+    footer: {
+      marginTop: 8,
+      paddingTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      gap: 10,
+    },
+    disclaimerRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 8,
+      paddingTop: 2,
+    },
+    disclaimerText: {
+      flex: 1,
+      fontSize: 11,
+      lineHeight: 16,
+      color: colors.textMuted,
+    },
+    sourceText: {
+      fontSize: 11,
+      color: colors.textMuted,
+      textAlign: "center",
+    },
+    footerLinks: {
+      alignItems: "center",
+    },
+    footerLink: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    },
+    footerLinkText: {
       fontSize: 12,
       color: colors.textMuted,
     },
