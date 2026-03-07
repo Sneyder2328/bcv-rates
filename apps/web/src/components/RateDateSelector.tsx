@@ -43,7 +43,8 @@ export function RateDateSelector({
   onChange,
 }: RateDateSelectorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const selectedDate = value ? parseDatePart(value) : undefined;
+  const currentValue = value ?? undefined;
+  const selectedDate = currentValue ? parseDatePart(currentValue) : undefined;
   const maxDate = max ? parseDatePart(max) : undefined;
   const [isOpen, setIsOpen] = useState(false);
   const [visibleMonth, setVisibleMonth] = useState<Date>(
@@ -79,8 +80,11 @@ export function RateDateSelector({
     };
   }, [isOpen]);
 
-  const canGoPrev = Boolean(value) && !disabled;
-  const canGoNext = Boolean(value) && !disabled && (!max || value < max);
+  const canGoPrev = currentValue !== undefined && !disabled;
+  const canGoNext =
+    currentValue === undefined
+      ? false
+      : !disabled && (!max || currentValue < max);
 
   function handleChange(nextDate: string) {
     if (!nextDate) return;
@@ -111,7 +115,9 @@ export function RateDateSelector({
       <div className="flex items-center gap-2" ref={containerRef}>
         <button
           type="button"
-          onClick={() => value && handleChange(shiftDatePart(value, -1))}
+          onClick={() =>
+            currentValue && handleChange(shiftDatePart(currentValue, -1))
+          }
           disabled={!canGoPrev}
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-zinc-800/80 bg-zinc-950/40 text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
           aria-label="Ir al dia anterior"
@@ -136,7 +142,9 @@ export function RateDateSelector({
                 className="text-zinc-500"
                 aria-hidden="true"
               />
-              {value ? formatDisplayDate(value) : "Selecciona una fecha"}
+              {currentValue
+                ? formatDisplayDate(currentValue)
+                : "Selecciona una fecha"}
             </span>
             <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
               calendario
@@ -196,7 +204,9 @@ export function RateDateSelector({
 
         <button
           type="button"
-          onClick={() => value && handleChange(shiftDatePart(value, 1))}
+          onClick={() =>
+            currentValue && handleChange(shiftDatePart(currentValue, 1))
+          }
           disabled={!canGoNext}
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-zinc-800/80 bg-zinc-950/40 text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-100 disabled:cursor-not-allowed disabled:opacity-35"
           aria-label="Ir al dia siguiente"
