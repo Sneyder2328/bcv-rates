@@ -21,6 +21,7 @@ import {
   Card,
   SectionDivider,
 } from "../src/components/primitives";
+import { RateDateSelector } from "../src/components/RateDateSelector";
 import { SavedRatesList } from "../src/components/SavedRatesList";
 import { useCurrencyConverter } from "../src/hooks/useCurrencyConverter";
 import { useCustomRates } from "../src/hooks/useCustomRates";
@@ -29,6 +30,7 @@ import {
   useExchangeRates,
 } from "../src/hooks/useExchangeRates";
 import {
+  BarChart3,
   ExternalLink,
   Home,
   Info,
@@ -46,8 +48,19 @@ export default function HomeScreen() {
   const styles = useMemo(() => getStyles(colors), [colors]);
   const { user, loading: authLoading, signOut } = useAuth();
 
-  const { rates, error, isLoading, syncingRates, statusLine, isOnline } =
-    useExchangeRates();
+  const {
+    rates,
+    error,
+    isLoading,
+    syncingRates,
+    statusLine,
+    secondaryStatusLine,
+    isOnline,
+    selectedDate,
+    setSelectedDate,
+    currentEffectiveDate,
+    maxSelectableDate,
+  } = useExchangeRates();
 
   const {
     bolivars,
@@ -193,7 +206,16 @@ export default function HomeScreen() {
           )}
 
           {/* Status line */}
-          {rates && <Text style={styles.statusLine}>{statusLine}</Text>}
+          {rates && (
+            <View style={styles.statusBlock}>
+              <Text style={styles.statusLine}>{statusLine}</Text>
+              {secondaryStatusLine ? (
+                <Text style={styles.secondaryStatusLine}>
+                  {secondaryStatusLine}
+                </Text>
+              ) : null}
+            </View>
+          )}
         </Card>
 
         {/* Converter */}
@@ -245,7 +267,7 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <SectionDivider label="Tasa Personalizada" />
+          <SectionDivider label="Tasas Personalizadas" />
 
           <CustomRateInput
             rateValue={customRate}
@@ -269,18 +291,36 @@ export default function HomeScreen() {
               }}
             />
           )}
+
+          <SectionDivider label="Otra Fecha" />
+
+          <RateDateSelector
+            value={selectedDate ?? currentEffectiveDate}
+            max={maxSelectableDate}
+            disabled={!currentEffectiveDate}
+            onChange={setSelectedDate}
+          />
         </Card>
 
         {/* Navigation buttons */}
-        <View style={styles.navButtons}>
+        {user ? (
           <Button
             variant="outline"
-            onPress={() => router.push("/history")}
-            style={styles.navButton}
+            onPress={() => {
+              track("history_open", { source: "main" });
+              router.push("/history");
+            }}
+            style={styles.historyButton}
           >
-            Ver Historial
+            <BarChart3 size={18} color={colors.textSecondary} />
+            <View style={styles.historyButtonTextWrap}>
+              <Text style={styles.historyButtonTitle}>Ver histórico</Text>
+              <Text style={styles.historyButtonSubtitle}>
+                Consulta la evolución reciente de USD y EUR.
+              </Text>
+            </View>
           </Button>
-        </View>
+        ) : null}
 
         {/* Auth section */}
         {authLoading ? null : user ? (
@@ -538,8 +578,17 @@ const getStyles = (colors: ThemeColors) =>
     statusLine: {
       fontSize: 12,
       color: colors.textMuted,
-      marginTop: 8,
       textAlign: "center",
+    },
+    statusBlock: {
+      marginTop: 8,
+      gap: 4,
+    },
+    secondaryStatusLine: {
+      fontSize: 12,
+      color: colors.bannerWarning.text,
+      textAlign: "center",
+      fontWeight: "600",
     },
     loadingContainer: {
       paddingVertical: 24,
@@ -558,13 +607,23 @@ const getStyles = (colors: ThemeColors) =>
     converterCol: {
       flex: 1,
     },
-    navButtons: {
-      flexDirection: "row",
-      gap: 12,
+    historyButton: {
       marginBottom: 12,
+      justifyContent: "flex-start",
+      paddingVertical: 14,
     },
-    navButton: {
+    historyButtonTextWrap: {
       flex: 1,
+      gap: 2,
+    },
+    historyButtonTitle: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: colors.textSecondary,
+    },
+    historyButtonSubtitle: {
+      fontSize: 12,
+      color: colors.textMuted,
     },
     // Auth section
     authButton: {

@@ -6,8 +6,10 @@
 export {
   AlertTriangle,
   BarChart3,
+  CalendarDays,
   Check,
   ChevronLeft,
+  ChevronRight,
   Copy,
   ExternalLink,
   Eye,

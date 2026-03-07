@@ -4,9 +4,15 @@ import {
   parseAmount,
   vesToForeign,
 } from "@bcv-rates/domain";
-import { useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { trackDebounced } from "../analytics/umami";
 import type { ExchangeRates } from "./useExchangeRates";
+
+type SourceField = "ves" | "usd" | "eur" | "custom" | null;
+type ApplyOptions = {
+  track?: boolean;
+  customRateOverride?: number | null;
+};
 
 export function useCurrencyConverter(rates: ExchangeRates | null) {
   const [bolivars, setBolivars] = useState("");
@@ -14,8 +20,14 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
   const [eur, setEur] = useState("");
   const [customRate, setCustomRate] = useState("");
   const [customAmount, setCustomAmount] = useState("");
+  const [lastEditedField, setLastEditedField] = useState<SourceField>(null);
 
-  function onBolivarsChange(next: string) {
+  function resolveCustomRate(override?: number | null) {
+    return override ?? parseAmount(customRate);
+  }
+
+  function applyBolivars(next: string, options: ApplyOptions = {}) {
+    const { track = true, customRateOverride } = options;
     setBolivars(next);
     if (!rates) return;
 
@@ -27,8 +39,8 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       return;
     }
 
-    const customRateNum = parseAmount(customRate);
-    if (amount > 0) {
+    const customRateNum = resolveCustomRate(customRateOverride);
+    if (track && amount > 0) {
       trackDebounced(
         "convert",
         "convert",
@@ -45,10 +57,14 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
 
     if (customRateNum && customRateNum > 0) {
       setCustomAmount(formatAmount(vesToForeign(amount, customRateNum)));
+      return;
     }
+
+    setCustomAmount("");
   }
 
-  function onUsdChange(next: string) {
+  function applyUsd(next: string, options: ApplyOptions = {}) {
+    const { track = true, customRateOverride } = options;
     setUsd(next);
     if (!rates) return;
 
@@ -60,8 +76,8 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       return;
     }
 
-    const customRateNum = parseAmount(customRate);
-    if (amount > 0) {
+    const customRateNum = resolveCustomRate(customRateOverride);
+    if (track && amount > 0) {
       trackDebounced(
         "convert",
         "convert",
@@ -79,10 +95,14 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
 
     if (customRateNum && customRateNum > 0) {
       setCustomAmount(formatAmount(vesToForeign(ves, customRateNum)));
+      return;
     }
+
+    setCustomAmount("");
   }
 
-  function onEurChange(next: string) {
+  function applyEur(next: string, options: ApplyOptions = {}) {
+    const { track = true, customRateOverride } = options;
     setEur(next);
     if (!rates) return;
 
@@ -94,8 +114,8 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       return;
     }
 
-    const customRateNum = parseAmount(customRate);
-    if (amount > 0) {
+    const customRateNum = resolveCustomRate(customRateOverride);
+    if (track && amount > 0) {
       trackDebounced(
         "convert",
         "convert",
@@ -113,28 +133,21 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
 
     if (customRateNum && customRateNum > 0) {
       setCustomAmount(formatAmount(vesToForeign(ves, customRateNum)));
+      return;
     }
+
+    setCustomAmount("");
   }
 
-  function onCustomRateChange(next: string) {
-    setCustomRate(next);
-
-    const vesAmount = parseAmount(bolivars);
-    const rateValue = parseAmount(next);
-
-    if (vesAmount !== null && rateValue !== null && rateValue > 0) {
-      setCustomAmount(formatAmount(vesToForeign(vesAmount, rateValue)));
-    } else {
-      setCustomAmount("");
-    }
-  }
-
-  function onCustomAmountChange(next: string) {
+  function applyCustomAmount(next: string, options: ApplyOptions = {}) {
+    const { track = true, customRateOverride } = options;
     setCustomAmount(next);
     if (!rates) return;
 
-    const customRateNum = parseAmount(customRate);
-    if (!customRateNum || customRateNum <= 0) return;
+    const customRateNum = resolveCustomRate(customRateOverride);
+    if (!customRateNum || customRateNum <= 0) {
+      return;
+    }
 
     const amount = parseAmount(next);
     if (amount === null) {
@@ -144,7 +157,7 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
       return;
     }
 
-    if (amount > 0) {
+    if (track && amount > 0) {
       trackDebounced(
         "convert",
         "convert",
@@ -158,6 +171,75 @@ export function useCurrencyConverter(rates: ExchangeRates | null) {
     setUsd(formatAmount(vesToForeign(ves, rates.usd)));
     setEur(formatAmount(vesToForeign(ves, rates.eur)));
   }
+
+  function onBolivarsChange(next: string) {
+    setLastEditedField("ves");
+    applyBolivars(next);
+  }
+
+  function onUsdChange(next: string) {
+    setLastEditedField("usd");
+    applyUsd(next);
+  }
+
+  function onEurChange(next: string) {
+    setLastEditedField("eur");
+    applyEur(next);
+  }
+
+  function onCustomRateChange(next: string) {
+    setCustomRate(next);
+    const nextCustomRate = parseAmount(next);
+
+    switch (lastEditedField) {
+      case "usd":
+        applyUsd(usd, { track: false, customRateOverride: nextCustomRate });
+        return;
+      case "eur":
+        applyEur(eur, { track: false, customRateOverride: nextCustomRate });
+        return;
+      case "custom":
+        applyCustomAmount(customAmount, {
+          track: false,
+          customRateOverride: nextCustomRate,
+        });
+        return;
+      default:
+        applyBolivars(bolivars, {
+          track: false,
+          customRateOverride: nextCustomRate,
+        });
+    }
+  }
+
+  function onCustomAmountChange(next: string) {
+    setLastEditedField("custom");
+    applyCustomAmount(next);
+  }
+
+  const reapplyForCurrentRates = useEffectEvent(() => {
+    switch (lastEditedField) {
+      case "ves":
+        applyBolivars(bolivars, { track: false });
+        return;
+      case "usd":
+        applyUsd(usd, { track: false });
+        return;
+      case "eur":
+        applyEur(eur, { track: false });
+        return;
+      case "custom":
+        applyCustomAmount(customAmount, { track: false });
+        return;
+      default:
+        return;
+    }
+  });
+
+  useEffect(() => {
+    if (!rates) return;
+    reapplyForCurrentRates();
+  }, [rates]);
 
   return {
     bolivars,

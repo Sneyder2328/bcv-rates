@@ -84,20 +84,26 @@ function toRateSnapshot(record: ExchangeRate) {
   };
 }
 
+function getIsoCalendarDatePart(value: Date) {
+  return value.toISOString().slice(0, 10);
+}
+
+function getEndOfIsoCalendarDay(value: Date) {
+  return new Date(`${getIsoCalendarDatePart(value)}T23:59:59.999Z`);
+}
+
 function buildLatestRate(
-  activeRates: ExchangeRate[],
+  currentRate: ExchangeRate | null,
+  previousRate: HistoricalExchangeRate | null,
   nextPublished: ExchangeRate | null,
 ) {
-  const current = activeRates[0];
-  const previous = activeRates[1];
-
-  if (!current) {
+  if (!currentRate) {
     return null;
   }
 
   return {
-    ...toRateSnapshot(current),
-    previousRate: previous ? previous.rate.toString() : null,
+    ...toRateSnapshot(currentRate),
+    previousRate: previousRate ? previousRate.rate.toString() : null,
     nextPublished: nextPublished ? toRateSnapshot(nextPublished) : null,
   };
 }
@@ -155,43 +161,76 @@ export function createExchangeRatesRouter(
 
         const activeCutoff = getEndOfTodayInCaracas();
 
-        const [usdRates, eurRates, usdNextPublished, eurNextPublished] =
-          await Promise.all([
-            prisma.exchangeRate.findMany({
-              where: {
-                currency: CurrencyCode.USD,
-                validAt: { lte: activeCutoff },
-              },
-              orderBy: [{ validAt: "desc" }, { fetchedAt: "desc" }],
-              take: 2,
-            }),
-            prisma.exchangeRate.findMany({
-              where: {
-                currency: CurrencyCode.EUR,
-                validAt: { lte: activeCutoff },
-              },
-              orderBy: [{ validAt: "desc" }, { fetchedAt: "desc" }],
-              take: 2,
-            }),
-            prisma.exchangeRate.findFirst({
-              where: {
-                currency: CurrencyCode.USD,
-                validAt: { gt: activeCutoff },
-              },
-              orderBy: [{ validAt: "asc" }, { fetchedAt: "desc" }],
-            }),
-            prisma.exchangeRate.findFirst({
-              where: {
-                currency: CurrencyCode.EUR,
-                validAt: { gt: activeCutoff },
-              },
-              orderBy: [{ validAt: "asc" }, { fetchedAt: "desc" }],
-            }),
-          ]);
+        const [
+          usdCurrentRate,
+          eurCurrentRate,
+          usdNextPublished,
+          eurNextPublished,
+        ] = await Promise.all([
+          prisma.exchangeRate.findFirst({
+            where: {
+              currency: CurrencyCode.USD,
+              validAt: { lte: activeCutoff },
+            },
+            orderBy: [{ validAt: "desc" }, { fetchedAt: "desc" }],
+          }),
+          prisma.exchangeRate.findFirst({
+            where: {
+              currency: CurrencyCode.EUR,
+              validAt: { lte: activeCutoff },
+            },
+            orderBy: [{ validAt: "desc" }, { fetchedAt: "desc" }],
+          }),
+          prisma.exchangeRate.findFirst({
+            where: {
+              currency: CurrencyCode.USD,
+              validAt: { gt: activeCutoff },
+            },
+            orderBy: [{ validAt: "asc" }, { fetchedAt: "desc" }],
+          }),
+          prisma.exchangeRate.findFirst({
+            where: {
+              currency: CurrencyCode.EUR,
+              validAt: { gt: activeCutoff },
+            },
+            orderBy: [{ validAt: "asc" }, { fetchedAt: "desc" }],
+          }),
+        ]);
+
+        const [usdHistoricalRates, eurHistoricalRates] = await Promise.all([
+          usdCurrentRate
+            ? prisma.historicalExchangeRate.findMany({
+                where: {
+                  currency: CurrencyCode.USD,
+                  date: { lte: getEndOfIsoCalendarDay(usdCurrentRate.validAt) },
+                },
+                orderBy: [{ date: "desc" }, { fetchedAt: "desc" }],
+                take: 2,
+              })
+            : Promise.resolve([]),
+          eurCurrentRate
+            ? prisma.historicalExchangeRate.findMany({
+                where: {
+                  currency: CurrencyCode.EUR,
+                  date: { lte: getEndOfIsoCalendarDay(eurCurrentRate.validAt) },
+                },
+                orderBy: [{ date: "desc" }, { fetchedAt: "desc" }],
+                take: 2,
+              })
+            : Promise.resolve([]),
+        ]);
 
         return {
-          USD: buildLatestRate(usdRates, usdNextPublished),
-          EUR: buildLatestRate(eurRates, eurNextPublished),
+          USD: buildLatestRate(
+            usdCurrentRate,
+            usdHistoricalRates[1] ?? null,
+            usdNextPublished,
+          ),
+          EUR: buildLatestRate(
+            eurCurrentRate,
+            eurHistoricalRates[1] ?? null,
+            eurNextPublished,
+          ),
         };
       },
     ),

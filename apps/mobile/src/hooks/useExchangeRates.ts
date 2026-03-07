@@ -1,13 +1,12 @@
-import { formatAmount } from "@bcv-rates/domain";
+import {
+  formatAmount,
+  parseIsoCalendarDateToLocalDate,
+} from "@bcv-rates/domain";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { trackOnce } from "../analytics/umami";
 import { getTrpcClient } from "../lib/trpcClient";
 import { useOnlineStatus } from "./useOnlineStatus";
-
-// -------------------------------------------------------------------
-// Types
-// -------------------------------------------------------------------
 
 export interface ExchangeRates {
   usd: number;
@@ -16,23 +15,49 @@ export interface ExchangeRates {
   eurPrevious?: number;
   validAt: string;
   fetchedAt: string;
+  nextPublishedAt?: string;
 }
-
-// -------------------------------------------------------------------
-// Helpers
-// -------------------------------------------------------------------
 
 interface LatestRateEntry {
   rate: string;
   validAt: string;
   fetchedAt: string;
   previousRate?: string | null;
+  nextPublished?: {
+    rate: string;
+    validAt: string;
+    fetchedAt: string;
+  } | null;
 }
 
 type LatestRatesResponse = {
   USD?: LatestRateEntry | null;
   EUR?: LatestRateEntry | null;
 } | null;
+
+function toCalendarDatePart(value: string): string {
+  return value.split("T")[0] ?? value;
+}
+
+function formatCalendarDate(isoString: string): string {
+  const date = parseIsoCalendarDateToLocalDate(isoString);
+
+  return Number.isNaN(date.getTime())
+    ? isoString
+    : date.toLocaleDateString("es-VE", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      });
+}
+
+function pickSoonestUpcomingValidAt(
+  ...candidates: Array<string | undefined>
+): string | undefined {
+  return candidates
+    .filter((value): value is string => Boolean(value))
+    .sort((left, right) => left.localeCompare(right))[0];
+}
 
 function deriveRates(latestRates: LatestRatesResponse): ExchangeRates | null {
   if (!latestRates) return null;
@@ -66,68 +91,111 @@ function deriveRates(latestRates: LatestRatesResponse): ExchangeRates | null {
       latestRates.USD?.fetchedAt ??
       latestRates.EUR?.fetchedAt ??
       new Date().toISOString(),
+    nextPublishedAt: pickSoonestUpcomingValidAt(
+      latestRates.USD?.nextPublished?.validAt,
+      latestRates.EUR?.nextPublished?.validAt,
+    ),
   };
 }
 
-function deriveStatusLine(
-  rates: ExchangeRates | null,
-  isOnline: boolean,
-  isLoading: boolean,
-  syncingRates: boolean,
-  error: string | null,
-): string {
-  if (!rates) {
-    if (!isOnline) {
-      return "Sin conexión. Abre la app una vez con internet para guardar las tasas.";
-    }
-    if (isLoading || syncingRates) return "Cargando tasas…";
-    if (error) return error;
-    return "No hay tasas disponibles todavía.";
+function categorizeErrorMessage(errorMessage: string) {
+  let category: "network" | "timeout" | "auth" | "server" | "unknown" =
+    "unknown";
+
+  if (
+    errorMessage.includes("fetch") ||
+    errorMessage.includes("network") ||
+    errorMessage.includes("connection")
+  ) {
+    category = "network";
+  } else if (
+    errorMessage.includes("timeout") ||
+    errorMessage.includes("aborted")
+  ) {
+    category = "timeout";
+  } else if (
+    errorMessage.includes("unauthorized") ||
+    errorMessage.includes("forbidden") ||
+    errorMessage.includes("auth")
+  ) {
+    category = "auth";
+  } else if (
+    errorMessage.includes("500") ||
+    errorMessage.includes("internal") ||
+    errorMessage.includes("server")
+  ) {
+    category = "server";
   }
 
-  const date = new Date(rates.validAt);
-  const dateText = Number.isNaN(date.getTime())
-    ? rates.validAt
-    : date.toLocaleDateString("es-VE", {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-      });
-
-  return `Fecha Valor: ${dateText}`;
+  return category;
 }
-
-// -------------------------------------------------------------------
-// Formatter helpers for display
-// -------------------------------------------------------------------
 
 export function formatRateDisplay(rate: number): string {
   return formatAmount(rate);
 }
 
-// -------------------------------------------------------------------
-// Hook
-// -------------------------------------------------------------------
-
 export function useExchangeRates() {
   const isOnline = useOnlineStatus();
+  const [selectedDate, setSelectedDateState] = useState<string | null>(null);
+  const [followCurrentDate, setFollowCurrentDate] = useState(true);
 
-  const {
-    data: latestRates,
-    error: queryError,
-    isFetching,
-    isLoading,
-  } = useQuery({
+  const latestRatesQuery = useQuery({
     queryKey: ["exchangeRates", "getLatest"],
     queryFn: () => getTrpcClient().exchangeRates.getLatest.query(),
     meta: { persist: true },
   });
 
-  const rates = deriveRates(latestRates ?? null);
+  const {
+    data: latestRates,
+    error: latestQueryError,
+    isFetching: latestIsFetching,
+    isLoading: latestIsLoading,
+  } = latestRatesQuery;
 
-  const error = queryError
-    ? queryError instanceof Error
-      ? queryError.message || "Error inesperado cargando las tasas."
+  const currentRates = deriveRates(latestRates ?? null);
+  const currentEffectiveDate = currentRates
+    ? toCalendarDatePart(currentRates.validAt)
+    : null;
+  const maxSelectableDate = currentRates
+    ? toCalendarDatePart(currentRates.nextPublishedAt ?? currentRates.validAt)
+    : undefined;
+
+  useEffect(() => {
+    if (!currentEffectiveDate || !followCurrentDate) return;
+    setSelectedDateState(currentEffectiveDate);
+  }, [currentEffectiveDate, followCurrentDate]);
+
+  const selectedRatesQuery = useQuery({
+    queryKey: [
+      "exchangeRates",
+      "getByDate",
+      selectedDate ?? currentEffectiveDate,
+    ],
+    queryFn: () =>
+      getTrpcClient().exchangeRates.getByDate.query({
+        date: selectedDate ?? currentEffectiveDate ?? "1970-01-01",
+      }),
+    enabled: Boolean(
+      selectedDate &&
+        currentEffectiveDate &&
+        selectedDate !== currentEffectiveDate,
+    ),
+    meta: { persist: true },
+  });
+
+  const selectedRates = deriveRates(selectedRatesQuery.data ?? null);
+  const isDefaultSelection =
+    !selectedDate ||
+    !currentEffectiveDate ||
+    selectedDate === currentEffectiveDate;
+  const rates = isDefaultSelection ? currentRates : selectedRates;
+
+  const activeQueryError = isDefaultSelection
+    ? latestQueryError
+    : selectedRatesQuery.error;
+  const error = activeQueryError
+    ? activeQueryError instanceof Error
+      ? activeQueryError.message || "Error inesperado cargando las tasas."
       : "Error inesperado cargando las tasas."
     : null;
 
@@ -137,51 +205,23 @@ export function useExchangeRates() {
   }, [isOnline, rates]);
 
   useEffect(() => {
-    if (!queryError) return;
+    if (!activeQueryError) return;
 
     const errorMessage =
-      queryError instanceof Error ? queryError.message : String(queryError);
-
-    let category: "network" | "timeout" | "auth" | "server" | "unknown" =
-      "unknown";
-
-    if (
-      errorMessage.includes("fetch") ||
-      errorMessage.includes("network") ||
-      errorMessage.includes("connection")
-    ) {
-      category = "network";
-    } else if (
-      errorMessage.includes("timeout") ||
-      errorMessage.includes("aborted")
-    ) {
-      category = "timeout";
-    } else if (
-      errorMessage.includes("unauthorized") ||
-      errorMessage.includes("forbidden") ||
-      errorMessage.includes("auth")
-    ) {
-      category = "auth";
-    } else if (
-      errorMessage.includes("500") ||
-      errorMessage.includes("internal") ||
-      errorMessage.includes("server")
-    ) {
-      category = "server";
-    }
-
-    const hasCachedRates = !!rates;
+      activeQueryError instanceof Error
+        ? activeQueryError.message
+        : String(activeQueryError);
 
     trackOnce(
       `rates_load_error_${isOnline ? "online" : "offline"}`,
       "rates_load_error",
       {
         online: isOnline,
-        category,
-        hasCachedRates,
+        category: categorizeErrorMessage(errorMessage),
+        hasCachedRates: Boolean(rates),
       },
     );
-  }, [isOnline, queryError, rates]);
+  }, [activeQueryError, isOnline, rates]);
 
   useEffect(() => {
     if (isOnline) return;
@@ -192,24 +232,72 @@ export function useExchangeRates() {
     });
   }, [isOnline, rates]);
 
-  const syncingRates = isOnline && isFetching;
+  const syncingRates =
+    isOnline && (latestIsFetching || selectedRatesQuery.isFetching);
+  const selectedDateText = selectedDate ?? currentEffectiveDate;
 
-  const statusLine = deriveStatusLine(
-    rates,
-    isOnline,
-    isLoading,
-    syncingRates,
-    error,
-  );
+  const statusLine = (() => {
+    if (!rates) {
+      if (!isOnline) {
+        return "Sin conexión. Abre la app una vez con internet para guardar las tasas.";
+      }
+      if (
+        !isDefaultSelection &&
+        selectedDateText &&
+        !selectedRatesQuery.isLoading &&
+        !selectedRatesQuery.error
+      ) {
+        return "No hay tasas disponibles para la fecha seleccionada.";
+      }
+      if (latestIsLoading || selectedRatesQuery.isLoading || syncingRates) {
+        return "Cargando tasas…";
+      }
+      if (error) return error;
+      return "No hay tasas disponibles todavía.";
+    }
+
+    if (!isDefaultSelection && selectedDateText) {
+      return `Fecha seleccionada: ${formatCalendarDate(selectedDateText)}`;
+    }
+
+    return `Fecha valor vigente: ${formatCalendarDate(rates.validAt)}`;
+  })();
+
+  const secondaryStatusLine = (() => {
+    if (!rates || !selectedDateText) return null;
+
+    const appliedDate = toCalendarDatePart(rates.validAt);
+    if (selectedDateText !== appliedDate) {
+      return `Tasa aplicada: ${formatCalendarDate(rates.validAt)}`;
+    }
+
+    if (isDefaultSelection && currentRates?.nextPublishedAt) {
+      return `Próxima tasa publicada: ${formatCalendarDate(
+        currentRates.nextPublishedAt,
+      )}`;
+    }
+
+    return null;
+  })();
+
+  function setSelectedDate(nextDate: string) {
+    setSelectedDateState(nextDate);
+    setFollowCurrentDate(nextDate === currentEffectiveDate);
+  }
 
   return {
     rates,
     error,
-    isLoading,
-    isFetching,
+    isLoading: latestIsLoading || selectedRatesQuery.isLoading,
+    isFetching: latestIsFetching || selectedRatesQuery.isFetching,
     syncingRates,
     statusLine,
+    secondaryStatusLine,
     isOnline,
     lastUpdated: rates?.fetchedAt ?? null,
+    selectedDate,
+    setSelectedDate,
+    currentEffectiveDate,
+    maxSelectableDate,
   };
 }
