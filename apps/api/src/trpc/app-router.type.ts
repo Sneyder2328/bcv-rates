@@ -72,6 +72,12 @@ export const appRouterType = t.router({
       .query(() => {
         throw new Error("Not implemented (type-only router)");
       }),
+    getByDate: t.procedure
+      .input(z.object({ date: z.iso.date() }))
+      .output(latestRatesResponseSchema)
+      .query(() => {
+        throw new Error("Not implemented (type-only router)");
+      }),
   }),
   customRates: t.router({
     list: t.procedure.output(customRatesListOutputSchema).query(() => {

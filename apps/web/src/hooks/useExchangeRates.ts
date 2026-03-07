@@ -1,5 +1,5 @@
 import { parseIsoCalendarDateToLocalDate } from "@bcv-rates/domain";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { trackOnce } from "@/analytics/umami";
 import { trpc } from "@/trpc/client";
 import { useOnlineStatus } from "@/utils/network";
@@ -25,6 +25,10 @@ type LatestRate = {
     fetchedAt: string;
   } | null;
 };
+
+function toCalendarDatePart(value: string): string {
+  return value.split("T")[0] ?? value;
+}
 
 function formatCalendarDate(isoString: string): string {
   const date = parseIsoCalendarDateToLocalDate(isoString);
@@ -92,33 +96,10 @@ function deriveRates(
   };
 }
 
-function deriveStatusLine(
-  rates: ExchangeRates | null,
-  isOnline: boolean,
-  isLoading: boolean,
-  syncingRates: boolean,
-  error: string | null,
-): string {
-  if (!rates) {
-    if (!isOnline) {
-      return "Sin conexión. Abre la app una vez con internet para guardar las tasas.";
-    }
-    if (isLoading || syncingRates) return "Cargando tasas…";
-    if (error) return error;
-    return "No hay tasas disponibles todavía.";
-  }
-
-  return `Fecha valor vigente: ${formatCalendarDate(rates.validAt)}`;
-}
-
-function deriveUpcomingStatusLine(rates: ExchangeRates | null): string | null {
-  if (!rates?.nextPublishedAt) return null;
-
-  return `Próxima tasa publicada: ${formatCalendarDate(rates.nextPublishedAt)}`;
-}
-
 export function useExchangeRates() {
   const isOnline = useOnlineStatus();
+  const [selectedDate, setSelectedDateState] = useState<string | null>(null);
+  const [followCurrentDate, setFollowCurrentDate] = useState(true);
 
   const latestRatesQuery = trpc.exchangeRates.getLatest.useQuery(undefined, {
     meta: { persist: true },
@@ -132,11 +113,45 @@ export function useExchangeRates() {
   } = latestRatesQuery;
 
   // Derive rates from the tRPC response
-  const rates = deriveRates(latestRates ?? null);
+  const currentRates = deriveRates(latestRates ?? null);
+  const currentEffectiveDate = currentRates
+    ? toCalendarDatePart(currentRates.validAt)
+    : null;
+  const maxSelectableDate = currentRates
+    ? toCalendarDatePart(currentRates.nextPublishedAt ?? currentRates.validAt)
+    : undefined;
+
+  useEffect(() => {
+    if (!currentEffectiveDate || !followCurrentDate) return;
+    setSelectedDateState(currentEffectiveDate);
+  }, [currentEffectiveDate, followCurrentDate]);
+
+  const selectedRatesQuery = trpc.exchangeRates.getByDate.useQuery(
+    { date: selectedDate ?? currentEffectiveDate ?? "1970-01-01" },
+    {
+      enabled: Boolean(
+        selectedDate &&
+          currentEffectiveDate &&
+          selectedDate !== currentEffectiveDate,
+      ),
+      meta: { persist: true },
+    },
+  );
+
+  const selectedRates = deriveRates(selectedRatesQuery.data ?? null);
+  const isDefaultSelection =
+    !selectedDate ||
+    !currentEffectiveDate ||
+    selectedDate === currentEffectiveDate;
+  const rates = isDefaultSelection ? currentRates : selectedRates;
+
+  const activeQueryError = isDefaultSelection
+    ? queryError
+    : selectedRatesQuery.error;
 
   // Derive error message from tRPC error
-  const error = queryError
-    ? queryError.message || "Error inesperado cargando las tasas."
+  const error = activeQueryError
+    ? activeQueryError.message || "Error inesperado cargando las tasas."
     : null;
 
   useEffect(() => {
@@ -200,25 +215,71 @@ export function useExchangeRates() {
     });
   }, [isOnline, rates]);
 
-  const syncingRates = isOnline && isFetching;
+  const syncingRates =
+    isOnline && (isFetching || selectedRatesQuery.isFetching);
+  const selectedDateText = selectedDate ?? currentEffectiveDate;
 
-  const statusLine = deriveStatusLine(
-    rates,
-    isOnline,
-    isLoading,
-    syncingRates,
-    error,
-  );
-  const upcomingStatusLine = deriveUpcomingStatusLine(rates);
+  const statusLine = (() => {
+    if (!rates) {
+      if (!isOnline) {
+        return "Sin conexión. Abre la app una vez con internet para guardar las tasas.";
+      }
+      if (
+        !isDefaultSelection &&
+        selectedDateText &&
+        !selectedRatesQuery.isLoading &&
+        !selectedRatesQuery.error
+      ) {
+        return "No hay tasas disponibles para la fecha seleccionada.";
+      }
+      if (isLoading || selectedRatesQuery.isLoading || syncingRates) {
+        return "Cargando tasas…";
+      }
+      if (error) return error;
+      return "No hay tasas disponibles todavía.";
+    }
+
+    if (selectedDateText) {
+      return `Fecha seleccionada: ${formatCalendarDate(selectedDateText)}`;
+    }
+
+    return `Fecha valor vigente: ${formatCalendarDate(rates.validAt)}`;
+  })();
+
+  const secondaryStatusLine = (() => {
+    if (!rates || !selectedDateText) return null;
+
+    const appliedDate = toCalendarDatePart(rates.validAt);
+    if (selectedDateText !== appliedDate) {
+      return `Tasa aplicada: ${formatCalendarDate(rates.validAt)}`;
+    }
+
+    if (isDefaultSelection && currentRates?.nextPublishedAt) {
+      return `Próxima tasa publicada: ${formatCalendarDate(
+        currentRates.nextPublishedAt,
+      )}`;
+    }
+
+    return null;
+  })();
+
+  function setSelectedDate(nextDate: string) {
+    setSelectedDateState(nextDate);
+    setFollowCurrentDate(nextDate === currentEffectiveDate);
+  }
 
   return {
     rates,
     error,
-    isLoading,
-    isFetching,
+    isLoading: isLoading || selectedRatesQuery.isLoading,
+    isFetching: isFetching || selectedRatesQuery.isFetching,
     syncingRates,
     statusLine,
-    upcomingStatusLine,
+    secondaryStatusLine,
     isOnline,
+    selectedDate,
+    setSelectedDate,
+    maxSelectableDate,
+    currentEffectiveDate,
   };
 }

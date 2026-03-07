@@ -4,13 +4,13 @@ import { CardHeader, CardTitle } from "./ui/card.tsx";
 type ExchangeRateHeaderProps = {
   syncing: boolean;
   statusLine: string;
-  upcomingStatusLine?: string | null;
+  secondaryStatusLine?: string | null;
 };
 
 export function ExchangeRateHeader({
   syncing,
   statusLine,
-  upcomingStatusLine,
+  secondaryStatusLine,
 }: ExchangeRateHeaderProps) {
   return (
     <CardHeader className="pb-2">
@@ -33,9 +33,9 @@ export function ExchangeRateHeader({
               statusLine
             )}
           </p>
-          {upcomingStatusLine ? (
+          {secondaryStatusLine ? (
             <p className="mt-1 text-xs font-medium text-amber-300/80">
-              {upcomingStatusLine}
+              {secondaryStatusLine}
             </p>
           ) : null}
         </div>

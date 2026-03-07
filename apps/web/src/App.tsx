@@ -1,4 +1,5 @@
 //import { AlertTriangle } from "lucide-react";
+import { ChartColumn } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { track } from "@/analytics/umami";
@@ -10,8 +11,9 @@ import { CustomRateInput } from "@/components/CustomRateInput";
 import { CustomRatesComponent } from "@/components/CustomRatesComponent";
 import { ExchangeRateFooter } from "@/components/ExchangeRateFooter";
 import { ExchangeRateHeader } from "@/components/ExchangeRateHeader";
-import { HistoryChart } from "@/components/HistoryChart";
+import { HistoryDialog } from "@/components/HistoryDialog";
 import { Navbar } from "@/components/Navbar";
+import { RateDateSelector } from "@/components/RateDateSelector";
 import { SectionDivider } from "@/components/SectionDivider";
 import { SettingsDialog } from "@/components/SettingsDialog";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,8 +27,16 @@ import { formatAmount } from "@/utils/formatters";
 function App() {
   const { user } = useAuth();
 
-  const { rates, syncingRates, statusLine, upcomingStatusLine } =
-    useExchangeRates();
+  const {
+    rates,
+    syncingRates,
+    statusLine,
+    secondaryStatusLine,
+    selectedDate,
+    setSelectedDate,
+    maxSelectableDate,
+    currentEffectiveDate,
+  } = useExchangeRates();
 
   const {
     bolivars,
@@ -45,6 +55,7 @@ function App() {
 
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const customRatesQuery = useCustomRatesCache(user?.uid);
@@ -139,7 +150,7 @@ function App() {
           <ExchangeRateHeader
             syncing={syncingRates}
             statusLine={statusLine}
-            upcomingStatusLine={upcomingStatusLine}
+            secondaryStatusLine={secondaryStatusLine}
           />
 
           <CardContent className="space-y-3 pt-3 sm:space-y-6 sm:pt-6">
@@ -203,6 +214,14 @@ function App() {
               unitLabel={customUnitLabel}
             />
 
+            <SectionDivider label="Otra Fecha" />
+            <RateDateSelector
+              value={selectedDate ?? currentEffectiveDate}
+              max={maxSelectableDate}
+              disabled={!currentEffectiveDate}
+              onChange={setSelectedDate}
+            />
+
             {user && (
               <>
                 <CustomRatesComponent
@@ -214,9 +233,31 @@ function App() {
                     onCustomRateChange(formattedRate);
                   }}
                 />
-
-                <SectionDivider label="Histórico" />
-                <HistoryChart />
+                <button
+                  type="button"
+                  onClick={() => {
+                    track("history_open", { source: "main" });
+                    setHistoryOpen(true);
+                  }}
+                  className="flex w-full items-center justify-between rounded-2xl border border-zinc-800/60 bg-zinc-950/35 px-4 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-950/55"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800/80 bg-zinc-950/60 text-emerald-400">
+                      <ChartColumn size={18} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-zinc-100">
+                        Ver histórico
+                      </p>
+                      <p className="text-xs text-zinc-500">
+                        Abre el gráfico en una vista aparte.
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                    Modal
+                  </span>
+                </button>
               </>
             )}
           </CardContent>
@@ -238,6 +279,13 @@ function App() {
         onClose={() => {
           track("settings_close");
           setSettingsOpen(false);
+        }}
+      />
+      <HistoryDialog
+        open={historyOpen}
+        onClose={() => {
+          track("history_close", { source: "main" });
+          setHistoryOpen(false);
         }}
       />
     </div>

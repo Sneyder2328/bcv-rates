@@ -1,6 +1,10 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { CurrencyCode, type ExchangeRate } from "@/generated/prisma/client";
+import {
+  CurrencyCode,
+  type ExchangeRate,
+  type HistoricalExchangeRate,
+} from "@/generated/prisma/client";
 // biome-ignore lint/style/useImportType: PrismaService must be a runtime import so NestJS can emit DI metadata for constructor injection.
 import { PrismaService } from "@/prisma/prisma.service";
 import { publicProcedure, router } from "@/trpc/trpc";
@@ -27,6 +31,10 @@ const latestRateSchema = z
 const latestRatesResponseSchema = z.object({
   USD: latestRateSchema,
   EUR: latestRateSchema,
+});
+
+const dateInputSchema = z.object({
+  date: z.iso.date(),
 });
 
 export type LatestRatesResponse = z.infer<typeof latestRatesResponseSchema>;
@@ -91,6 +99,34 @@ function buildLatestRate(
     ...toRateSnapshot(current),
     previousRate: previous ? previous.rate.toString() : null,
     nextPublished: nextPublished ? toRateSnapshot(nextPublished) : null,
+  };
+}
+
+function toHistoricalRateSnapshot(record: HistoricalExchangeRate) {
+  return {
+    rate: record.rate.toString(),
+    validAt: record.date.toISOString(),
+    fetchedAt: record.fetchedAt.toISOString(),
+  };
+}
+
+function buildHistoricalRate(
+  activeRates: HistoricalExchangeRate[],
+  nextPublished: HistoricalExchangeRate | null,
+) {
+  const current = activeRates[0];
+  const previous = activeRates[1];
+
+  if (!current) {
+    return null;
+  }
+
+  return {
+    ...toHistoricalRateSnapshot(current),
+    previousRate: previous ? previous.rate.toString() : null,
+    nextPublished: nextPublished
+      ? toHistoricalRateSnapshot(nextPublished)
+      : null,
   };
 }
 
@@ -159,6 +195,50 @@ export function createExchangeRatesRouter(
         };
       },
     ),
+    getByDate: publicProcedure
+      .input(dateInputSchema)
+      .query(async ({ input }): Promise<LatestRatesResponse> => {
+        const selectedDay = new Date(`${input.date}T23:59:59.999Z`);
+
+        const [usdRates, eurRates, usdNextPublished, eurNextPublished] =
+          await Promise.all([
+            prisma.historicalExchangeRate.findMany({
+              where: {
+                currency: CurrencyCode.USD,
+                date: { lte: selectedDay },
+              },
+              orderBy: [{ date: "desc" }, { fetchedAt: "desc" }],
+              take: 2,
+            }),
+            prisma.historicalExchangeRate.findMany({
+              where: {
+                currency: CurrencyCode.EUR,
+                date: { lte: selectedDay },
+              },
+              orderBy: [{ date: "desc" }, { fetchedAt: "desc" }],
+              take: 2,
+            }),
+            prisma.historicalExchangeRate.findFirst({
+              where: {
+                currency: CurrencyCode.USD,
+                date: { gt: selectedDay },
+              },
+              orderBy: [{ date: "asc" }, { fetchedAt: "desc" }],
+            }),
+            prisma.historicalExchangeRate.findFirst({
+              where: {
+                currency: CurrencyCode.EUR,
+                date: { gt: selectedDay },
+              },
+              orderBy: [{ date: "asc" }, { fetchedAt: "desc" }],
+            }),
+          ]);
+
+        return {
+          USD: buildHistoricalRate(usdRates, usdNextPublished),
+          EUR: buildHistoricalRate(eurRates, eurNextPublished),
+        };
+      }),
   });
 }
 
