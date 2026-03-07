@@ -239,7 +239,7 @@ function App() {
                     track("history_open", { source: "main" });
                     setHistoryOpen(true);
                   }}
-                  className="flex w-full items-center justify-between rounded-2xl border border-zinc-800/60 bg-zinc-950/35 px-4 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-950/55"
+                  className="flex w-full items-center rounded-2xl border border-zinc-800/60 bg-zinc-950/35 px-4 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-950/55"
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800/80 bg-zinc-950/60 text-emerald-400">
@@ -250,13 +250,11 @@ function App() {
                         Ver histórico
                       </p>
                       <p className="text-xs text-zinc-500">
-                        Abre el gráfico en una vista aparte.
+                        Consulta como ha cambiado la tasa en el tiempo y compara
+                        su tendencia por fecha.
                       </p>
                     </div>
                   </div>
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                    Modal
-                  </span>
                 </button>
               </>
             )}
