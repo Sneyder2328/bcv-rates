@@ -1,3 +1,4 @@
+import { parseIsoCalendarDateToLocalDate } from "@bcv-rates/domain";
 import { useEffect } from "react";
 import { trackOnce } from "@/analytics/umami";
 import { trpc } from "@/trpc/client";
@@ -10,22 +11,45 @@ export interface ExchangeRates {
   eurPrevious?: number;
   validAt: string;
   fetchedAt: string;
+  nextPublishedAt?: string;
+}
+
+type LatestRate = {
+  rate: string;
+  validAt: string;
+  fetchedAt: string;
+  previousRate?: string | null;
+  nextPublished?: {
+    rate: string;
+    validAt: string;
+    fetchedAt: string;
+  } | null;
+};
+
+function formatCalendarDate(isoString: string): string {
+  const date = parseIsoCalendarDateToLocalDate(isoString);
+
+  return Number.isNaN(date.getTime())
+    ? isoString
+    : date.toLocaleDateString("es-VE", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      });
+}
+
+function pickSoonestUpcomingValidAt(
+  ...candidates: Array<string | undefined>
+): string | undefined {
+  return candidates
+    .filter((value): value is string => Boolean(value))
+    .sort((left, right) => left.localeCompare(right))[0];
 }
 
 function deriveRates(
   latestRates: {
-    USD?: {
-      rate: string;
-      validAt: string;
-      fetchedAt: string;
-      previousRate?: string | null;
-    } | null;
-    EUR?: {
-      rate: string;
-      validAt: string;
-      fetchedAt: string;
-      previousRate?: string | null;
-    } | null;
+    USD?: LatestRate | null;
+    EUR?: LatestRate | null;
   } | null,
 ): ExchangeRates | null {
   if (!latestRates) return null;
@@ -61,6 +85,10 @@ function deriveRates(
       latestRates.USD?.fetchedAt ??
       latestRates.EUR?.fetchedAt ??
       new Date().toISOString(),
+    nextPublishedAt: pickSoonestUpcomingValidAt(
+      latestRates.USD?.nextPublished?.validAt,
+      latestRates.EUR?.nextPublished?.validAt,
+    ),
   };
 }
 
@@ -80,16 +108,13 @@ function deriveStatusLine(
     return "No hay tasas disponibles todavía.";
   }
 
-  const date = new Date(rates.validAt);
-  const dateText = Number.isNaN(date.getTime())
-    ? rates.validAt
-    : date.toLocaleDateString("es-VE", {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-      });
+  return `Fecha valor vigente: ${formatCalendarDate(rates.validAt)}`;
+}
 
-  return `Fecha Valor: ${dateText}`;
+function deriveUpcomingStatusLine(rates: ExchangeRates | null): string | null {
+  if (!rates?.nextPublishedAt) return null;
+
+  return `Próxima tasa publicada: ${formatCalendarDate(rates.nextPublishedAt)}`;
 }
 
 export function useExchangeRates() {
@@ -184,6 +209,7 @@ export function useExchangeRates() {
     syncingRates,
     error,
   );
+  const upcomingStatusLine = deriveUpcomingStatusLine(rates);
 
   return {
     rates,
@@ -192,6 +218,7 @@ export function useExchangeRates() {
     isFetching,
     syncingRates,
     statusLine,
+    upcomingStatusLine,
     isOnline,
   };
 }

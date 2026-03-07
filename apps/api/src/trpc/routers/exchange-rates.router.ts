@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { CurrencyCode } from "@/generated/prisma/client";
+import { CurrencyCode, type ExchangeRate } from "@/generated/prisma/client";
 // biome-ignore lint/style/useImportType: PrismaService must be a runtime import so NestJS can emit DI metadata for constructor injection.
 import { PrismaService } from "@/prisma/prisma.service";
 import { publicProcedure, router } from "@/trpc/trpc";
@@ -8,12 +8,19 @@ import { publicProcedure, router } from "@/trpc/trpc";
 /**
  * Zod schema for the latest rates response.
  */
+const rateSnapshotSchema = z.object({
+  rate: z.string(),
+  validAt: z.string(),
+  fetchedAt: z.string(),
+});
+
 const latestRateSchema = z
   .object({
     rate: z.string(),
     validAt: z.string(),
     fetchedAt: z.string(),
     previousRate: z.string().nullable().optional(),
+    nextPublished: rateSnapshotSchema.nullable().optional(),
   })
   .nullable();
 
@@ -27,6 +34,65 @@ export type LatestRatesResponse = z.infer<typeof latestRatesResponseSchema>;
 export type ExchangeRatesRouterConfig = {
   requireServerKeyForGetLatest: boolean;
 };
+
+const CARACAS_TIME_ZONE = "America/Caracas";
+const CARACAS_UTC_OFFSET = "-04:00";
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+function getDatePartsInTimeZone(date: Date, timeZone: string) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+
+  const parts = formatter.formatToParts(date);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+
+  if (!year || !month || !day) {
+    throw new Error(`Could not derive date parts for time zone "${timeZone}".`);
+  }
+
+  return { year, month, day };
+}
+
+function getEndOfTodayInCaracas(now: Date = new Date()): Date {
+  const { year, month, day } = getDatePartsInTimeZone(now, CARACAS_TIME_ZONE);
+  const startOfToday = new Date(
+    `${year}-${month}-${day}T00:00:00.000${CARACAS_UTC_OFFSET}`,
+  );
+
+  return new Date(startOfToday.getTime() + ONE_DAY_MS - 1);
+}
+
+function toRateSnapshot(record: ExchangeRate) {
+  return {
+    rate: record.rate.toString(),
+    validAt: record.validAt.toISOString(),
+    fetchedAt: record.fetchedAt.toISOString(),
+  };
+}
+
+function buildLatestRate(
+  activeRates: ExchangeRate[],
+  nextPublished: ExchangeRate | null,
+) {
+  const current = activeRates[0];
+  const previous = activeRates[1];
+
+  if (!current) {
+    return null;
+  }
+
+  return {
+    ...toRateSnapshot(current),
+    previousRate: previous ? previous.rate.toString() : null,
+    nextPublished: nextPublished ? toRateSnapshot(nextPublished) : null,
+  };
+}
 
 /**
  * Factory function to create the exchange rates router.
@@ -51,41 +117,45 @@ export function createExchangeRatesRouter(
           });
         }
 
-        const [usdRates, eurRates] = await Promise.all([
-          prisma.exchangeRate.findMany({
-            where: { currency: CurrencyCode.USD },
-            orderBy: [{ validAt: "desc" }, { fetchedAt: "desc" }],
-            take: 2,
-          }),
-          prisma.exchangeRate.findMany({
-            where: { currency: CurrencyCode.EUR },
-            orderBy: [{ validAt: "desc" }, { fetchedAt: "desc" }],
-            take: 2,
-          }),
-        ]);
+        const activeCutoff = getEndOfTodayInCaracas();
 
-        const usd = usdRates[0];
-        const usdPrev = usdRates[1];
-        const eur = eurRates[0];
-        const eurPrev = eurRates[1];
+        const [usdRates, eurRates, usdNextPublished, eurNextPublished] =
+          await Promise.all([
+            prisma.exchangeRate.findMany({
+              where: {
+                currency: CurrencyCode.USD,
+                validAt: { lte: activeCutoff },
+              },
+              orderBy: [{ validAt: "desc" }, { fetchedAt: "desc" }],
+              take: 2,
+            }),
+            prisma.exchangeRate.findMany({
+              where: {
+                currency: CurrencyCode.EUR,
+                validAt: { lte: activeCutoff },
+              },
+              orderBy: [{ validAt: "desc" }, { fetchedAt: "desc" }],
+              take: 2,
+            }),
+            prisma.exchangeRate.findFirst({
+              where: {
+                currency: CurrencyCode.USD,
+                validAt: { gt: activeCutoff },
+              },
+              orderBy: [{ validAt: "asc" }, { fetchedAt: "desc" }],
+            }),
+            prisma.exchangeRate.findFirst({
+              where: {
+                currency: CurrencyCode.EUR,
+                validAt: { gt: activeCutoff },
+              },
+              orderBy: [{ validAt: "asc" }, { fetchedAt: "desc" }],
+            }),
+          ]);
 
         return {
-          USD: usd
-            ? {
-                rate: usd.rate.toString(),
-                validAt: usd.validAt.toISOString(),
-                fetchedAt: usd.fetchedAt.toISOString(),
-                previousRate: usdPrev ? usdPrev.rate.toString() : null,
-              }
-            : null,
-          EUR: eur
-            ? {
-                rate: eur.rate.toString(),
-                validAt: eur.validAt.toISOString(),
-                fetchedAt: eur.fetchedAt.toISOString(),
-                previousRate: eurPrev ? eurPrev.rate.toString() : null,
-              }
-            : null,
+          USD: buildLatestRate(usdRates, usdNextPublished),
+          EUR: buildLatestRate(eurRates, eurNextPublished),
         };
       },
     ),

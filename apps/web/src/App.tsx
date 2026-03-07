@@ -25,7 +25,8 @@ import { formatAmount } from "@/utils/formatters";
 function App() {
   const { user } = useAuth();
 
-  const { rates, syncingRates, statusLine } = useExchangeRates();
+  const { rates, syncingRates, statusLine, upcomingStatusLine } =
+    useExchangeRates();
 
   const {
     bolivars,
@@ -135,7 +136,11 @@ function App() {
           {/* Decorative Top Line */}
           <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-80" />
 
-          <ExchangeRateHeader syncing={syncingRates} statusLine={statusLine} />
+          <ExchangeRateHeader
+            syncing={syncingRates}
+            statusLine={statusLine}
+            upcomingStatusLine={upcomingStatusLine}
+          />
 
           <CardContent className="space-y-3 pt-3 sm:space-y-6 sm:pt-6">
             {/* VES Input */}

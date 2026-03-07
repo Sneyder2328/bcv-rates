@@ -20,6 +20,14 @@ const latestRateSchema = z
     validAt: z.string(),
     fetchedAt: z.string(),
     previousRate: z.string().nullable().optional(),
+    nextPublished: z
+      .object({
+        rate: z.string(),
+        validAt: z.string(),
+        fetchedAt: z.string(),
+      })
+      .nullable()
+      .optional(),
   })
   .nullable();
 
