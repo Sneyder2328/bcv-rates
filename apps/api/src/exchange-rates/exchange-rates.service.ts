@@ -1,4 +1,6 @@
 import { Injectable, Logger, type OnModuleInit } from "@nestjs/common";
+// biome-ignore lint/style/useImportType: ConfigService must be a runtime import so NestJS can emit DI metadata for constructor injection.
+import { ConfigService } from "@nestjs/config";
 import { Cron } from "@nestjs/schedule";
 import { Agent } from "undici";
 import { CurrencyCode, Prisma } from "@/generated/prisma/client";
@@ -17,19 +19,16 @@ type LatestRate = {
 export class ExchangeRatesService implements OnModuleInit {
   private readonly logger = new Logger(ExchangeRatesService.name);
   private readonly BCV_TIMEOUT_MS = 90_000;
+  private readonly allowInsecureTls: boolean;
+  private readonly bcvHeaders: Record<string, string>;
 
-  constructor(private readonly prisma: PrismaService) {}
-
-  /**
-   * Helper to determine if we allow insecure TLS based on env vars.
-   * Default to TRUE given the target site's known history, but allow override.
-   */
-  private get allowInsecureTls(): boolean {
-    return process.env.BCV_ALLOW_INSECURE_TLS !== "false";
-  }
-
-  private get bcvHeaders(): Record<string, string> {
-    return {
+  constructor(
+    private readonly prisma: PrismaService,
+    configService: ConfigService,
+  ) {
+    this.allowInsecureTls =
+      configService.get<string>("BCV_ALLOW_INSECURE_TLS") !== "false";
+    this.bcvHeaders = {
       accept: "text/html,application/xhtml+xml",
       "accept-language": "es-VE,es;q=0.9,en;q=0.8",
       "user-agent": "bcv-rates/1.0 (+https://github.com/)",

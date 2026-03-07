@@ -7,7 +7,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.use(helmet());
   app.enableCors({
-    origin: process.env.CORS_ORIGINS?.split(","),
+    origin: process.env.CORS_ORIGINS?.split(",") ?? [],
   });
   app.setGlobalPrefix("api");
   const port = Number(process.env.PORT);

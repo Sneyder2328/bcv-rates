@@ -24,24 +24,27 @@ const latestRatesResponseSchema = z.object({
 
 export type LatestRatesResponse = z.infer<typeof latestRatesResponseSchema>;
 
-function requireServerKeyForGetLatest(): boolean {
-  return process.env.GET_LATEST_REQUIRE_SERVER_KEY === "true";
-}
+export type ExchangeRatesRouterConfig = {
+  requireServerKeyForGetLatest: boolean;
+};
 
 /**
  * Factory function to create the exchange rates router.
  * This allows us to inject the PrismaService from NestJS.
  */
-export function createExchangeRatesRouter(prisma: PrismaService) {
+export function createExchangeRatesRouter(
+  prisma: PrismaService,
+  config: ExchangeRatesRouterConfig,
+) {
   return router({
     /**
      * Get the latest exchange rates for USD and EUR.
      * During rollout this endpoint stays public unless
-     * GET_LATEST_REQUIRE_SERVER_KEY=true.
+     * requireServerKeyForGetLatest is true.
      */
     getLatest: publicProcedure.query(
       async ({ ctx }): Promise<LatestRatesResponse> => {
-        if (requireServerKeyForGetLatest() && !ctx.server?.trusted) {
+        if (config.requireServerKeyForGetLatest && !ctx.server?.trusted) {
           throw new TRPCError({
             code: "UNAUTHORIZED",
             message: "Trusted server key is required for getLatest.",

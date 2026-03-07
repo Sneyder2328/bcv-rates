@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "turbo dev --filter=@bcv-rates/api --filter=@bcv-rates/web",
+    "dev:all": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
@@ -14,7 +15,9 @@
     "db:push": "pnpm --filter api db:push",
     "db:migrate": "pnpm --filter api db:migrate",
     "db:migrate:deploy": "pnpm --filter api db:migrate:deploy",
-    "db:studio": "pnpm --filter api db:studio"
+    "db:studio": "pnpm --filter api db:studio",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
   },
   "keywords": [],
   "author": "",

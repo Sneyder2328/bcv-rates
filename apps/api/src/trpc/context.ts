@@ -1,6 +1,9 @@
 import { timingSafeEqual } from "node:crypto";
+import { Logger } from "@nestjs/common";
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { getFirebaseAdminAuth } from "@/auth/firebase-admin";
+
+const logger = new Logger("TrpcContext");
 
 export type TrpcUser = {
   uid: string;
@@ -16,6 +19,8 @@ export type TrpcContext = {
 };
 
 const DEFAULT_INTERNAL_API_KEY_HEADER = "x-internal-api-key";
+
+let internalApiKeyWarningLogged = false;
 
 function getBearerToken(authHeader: string | undefined): string | null {
   if (!authHeader) return null;
@@ -56,7 +61,15 @@ function getTrustedServerIdentity(
   opts: CreateExpressContextOptions,
 ): TrpcServer | null {
   const expectedApiKey = process.env.INTERNAL_API_KEY?.trim();
-  if (!expectedApiKey) return null;
+  if (!expectedApiKey) {
+    if (!internalApiKeyWarningLogged) {
+      internalApiKeyWarningLogged = true;
+      logger.warn(
+        "INTERNAL_API_KEY is not set — server-to-server auth is disabled.",
+      );
+    }
+    return null;
+  }
 
   const headerName = getInternalApiKeyHeaderName();
   const providedApiKey = getHeaderValue(opts.req.headers, headerName);

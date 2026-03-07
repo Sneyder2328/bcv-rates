@@ -29,12 +29,9 @@ function parseAmount(raw: string): number | null {
   return n;
 }
 
-function getMaxCustomRatesPerUser(): number {
-  const raw = process.env.CUSTOM_RATES_MAX_PER_USER;
-  const parsed = raw ? Number.parseInt(raw, 10) : Number.NaN;
-  if (Number.isFinite(parsed) && parsed > 0) return parsed;
-  return 10;
-}
+export type CustomRatesRouterConfig = {
+  maxPerUser: number;
+};
 
 const labelSchema = z
   .string()
@@ -54,10 +51,13 @@ export type UserCustomRateDto = {
   updatedAt: string;
 };
 
-export function createCustomRatesRouter(prisma: PrismaService) {
+export function createCustomRatesRouter(
+  prisma: PrismaService,
+  config: CustomRatesRouterConfig,
+) {
   return router({
     list: protectedProcedure.query(async ({ ctx }) => {
-      const maxPerUser = getMaxCustomRatesPerUser();
+      const { maxPerUser } = config;
 
       const items = await prisma.userCustomRate.findMany({
         where: { userId: ctx.user.uid },
@@ -86,7 +86,7 @@ export function createCustomRatesRouter(prisma: PrismaService) {
         }),
       )
       .mutation(async ({ ctx, input }) => {
-        const maxPerUser = getMaxCustomRatesPerUser();
+        const { maxPerUser } = config;
         const existingCount = await prisma.userCustomRate.count({
           where: { userId: ctx.user.uid },
         });
