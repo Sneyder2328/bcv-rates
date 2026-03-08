@@ -1,5 +1,5 @@
 //import { AlertTriangle } from "lucide-react";
-import { ChartColumn } from "lucide-react";
+import { Calculator, ChartColumn } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { track } from "@/analytics/umami";
@@ -12,6 +12,7 @@ import { CustomRatesComponent } from "@/components/CustomRatesComponent";
 import { ExchangeRateFooter } from "@/components/ExchangeRateFooter";
 import { ExchangeRateHeader } from "@/components/ExchangeRateHeader";
 import { HistoryDialog } from "@/components/HistoryDialog";
+import { MixedCurrencyCalculatorDialog } from "@/components/MixedCurrencyCalculatorDialog";
 import { Navbar } from "@/components/Navbar";
 import { RateDateSelector } from "@/components/RateDateSelector";
 import { SectionDivider } from "@/components/SectionDivider";
@@ -55,6 +56,7 @@ function App() {
 
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -201,6 +203,31 @@ function App() {
               />
             </div>
 
+            <button
+              type="button"
+              onClick={() => {
+                track("calculator_open", { source: "main" });
+                setCalculatorOpen(true);
+              }}
+              disabled={disabled}
+              className="flex w-full items-center rounded-2xl border border-zinc-800/60 bg-zinc-950/35 px-4 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-950/55 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800/80 bg-zinc-950/60 text-indigo-300">
+                  <Calculator size={18} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-zinc-100">
+                    Calculadora mixta
+                  </p>
+                  <p className="text-xs text-zinc-500">
+                    Suma y resta montos en VES, USD y EUR sin convertirlos
+                    manualmente uno por uno.
+                  </p>
+                </div>
+              </div>
+            </button>
+
             {/* Custom Rate Divider */}
             <SectionDivider label="Tasas Personalizadas" />
 
@@ -284,6 +311,16 @@ function App() {
         onClose={() => {
           track("history_close", { source: "main" });
           setHistoryOpen(false);
+        }}
+      />
+      <MixedCurrencyCalculatorDialog
+        open={calculatorOpen}
+        rates={rates}
+        statusLine={statusLine}
+        secondaryStatusLine={secondaryStatusLine}
+        onClose={() => {
+          track("calculator_close", { source: "main" });
+          setCalculatorOpen(false);
         }}
       />
     </div>
