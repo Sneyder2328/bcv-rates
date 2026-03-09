@@ -125,6 +125,7 @@ export function HistoryChart() {
           <option value={14}>14d</option>
           <option value={30}>30d</option>
           <option value={90}>90d</option>
+          <option value={365}>1a</option>
         </select>
       </div>
 
