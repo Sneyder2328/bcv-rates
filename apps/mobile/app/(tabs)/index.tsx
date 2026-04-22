@@ -10,38 +10,34 @@ import {
   Text,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import { track } from "../src/analytics/umami";
-import { useAuth } from "../src/auth";
-import { CurrencyInput } from "../src/components/CurrencyInput";
-import { CustomRateInput } from "../src/components/CustomRateInput";
+import { track } from "../../src/analytics/umami";
+import { useAuth } from "../../src/auth";
+import { CurrencyInput } from "../../src/components/CurrencyInput";
+import { CustomRateInput } from "../../src/components/CustomRateInput";
 import {
   Banner,
   Button,
   Card,
   SectionDivider,
-} from "../src/components/primitives";
-import { RateDateSelector } from "../src/components/RateDateSelector";
-import { SavedRatesList } from "../src/components/SavedRatesList";
-import { useCurrencyConverter } from "../src/hooks/useCurrencyConverter";
-import { useCustomRates } from "../src/hooks/useCustomRates";
+} from "../../src/components/primitives";
+import { RateDateSelector } from "../../src/components/RateDateSelector";
+import { SavedRatesList } from "../../src/components/SavedRatesList";
+import { useCurrencyConverter } from "../../src/hooks/useCurrencyConverter";
+import { useCustomRates } from "../../src/hooks/useCustomRates";
 import {
   formatRateDisplay,
   useExchangeRates,
-} from "../src/hooks/useExchangeRates";
+} from "../../src/hooks/useExchangeRates";
 import {
-  BarChart3,
   ExternalLink,
-  Home,
   Info,
   LogOut,
-  Settings,
   Shield,
   User,
   WifiOff,
-} from "../src/icons";
-import { type ThemeColors, useTheme } from "../src/theme";
+} from "../../src/icons";
+import { type ThemeColors, useTheme } from "../../src/theme";
 
 export default function HomeScreen() {
   const { colors } = useTheme();
@@ -123,30 +119,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Home size={24} color={colors.primary} />
-        </View>
-        <View style={styles.headerCenter}>
-          <Text style={styles.title}>El Cambio</Text>
-          <Text style={styles.subtitle}>BCV Rates</Text>
-        </View>
-        <View style={styles.headerRight}>
-          <Button
-            variant="ghost"
-            onPress={() => {
-              track("settings_open");
-              router.push("/settings");
-            }}
-          >
-            <Settings size={24} color={colors.textMuted} />
-          </Button>
-        </View>
-      </View>
-
-      {/* Content */}
+    <View style={styles.container}>
       <ScrollView
         style={styles.flex}
         contentContainerStyle={styles.scrollContent}
@@ -322,26 +295,6 @@ export default function HomeScreen() {
           />
         </Card>
 
-        {/* Navigation buttons */}
-        {user ? (
-          <Button
-            variant="outline"
-            onPress={() => {
-              track("history_open", { source: "main" });
-              router.push("/history");
-            }}
-            style={styles.historyButton}
-          >
-            <BarChart3 size={18} color={colors.textSecondary} />
-            <View style={styles.historyButtonTextWrap}>
-              <Text style={styles.historyButtonTitle}>Ver histórico</Text>
-              <Text style={styles.historyButtonSubtitle}>
-                Consulta la evolución reciente de USD y EUR.
-              </Text>
-            </View>
-          </Button>
-        ) : null}
-
         {/* Auth section */}
         {authLoading ? null : user ? (
           <Card style={styles.userCard}>
@@ -427,7 +380,7 @@ export default function HomeScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -490,38 +443,6 @@ const getStyles = (colors: ThemeColors) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      backgroundColor: colors.backgroundSecondary,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    headerLeft: {
-      width: 48,
-      justifyContent: "center",
-    },
-    headerCenter: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    headerRight: {
-      width: 48,
-      alignItems: "flex-end",
-      justifyContent: "center",
-    },
-    title: {
-      fontSize: 20,
-      fontWeight: "bold",
-      color: colors.text,
-    },
-    subtitle: {
-      fontSize: 12,
-      color: colors.textMuted,
     },
     scrollContent: {
       padding: 16,
@@ -626,24 +547,6 @@ const getStyles = (colors: ThemeColors) =>
     },
     converterCol: {
       flex: 1,
-    },
-    historyButton: {
-      marginBottom: 12,
-      justifyContent: "flex-start",
-      paddingVertical: 14,
-    },
-    historyButtonTextWrap: {
-      flex: 1,
-      gap: 2,
-    },
-    historyButtonTitle: {
-      fontSize: 14,
-      fontWeight: "700",
-      color: colors.textSecondary,
-    },
-    historyButtonSubtitle: {
-      fontSize: 12,
-      color: colors.textMuted,
     },
     // Auth section
     authButton: {

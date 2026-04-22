@@ -10,19 +10,18 @@ import {
   View,
 } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { track } from "../src/analytics/umami";
-import { useAuth } from "../src/auth";
-import { Banner, Button, Card } from "../src/components/primitives";
+import { track } from "../../src/analytics/umami";
+import { useAuth } from "../../src/auth";
+import { Banner, Button, Card } from "../../src/components/primitives";
 import type {
   ChartDataPoint,
   HistoryCurrency,
   HistoryRange,
-} from "../src/hooks/useHistoricalRates";
-import { useHistoricalRates } from "../src/hooks/useHistoricalRates";
-import { useOnlineStatus } from "../src/hooks/useOnlineStatus";
-import { ChevronLeft, TrendingUp, WifiOff } from "../src/icons";
-import { type ThemeColors, useTheme } from "../src/theme";
+} from "../../src/hooks/useHistoricalRates";
+import { useHistoricalRates } from "../../src/hooks/useHistoricalRates";
+import { useOnlineStatus } from "../../src/hooks/useOnlineStatus";
+import { TrendingUp, WifiOff } from "../../src/icons";
+import { type ThemeColors, useTheme } from "../../src/theme";
 
 const RANGE_OPTIONS: { value: HistoryRange; label: string }[] = [
   { value: 7, label: "7d" },
@@ -106,8 +105,7 @@ export default function HistoryScreen() {
   // Not authenticated — prompt sign-in
   if (!user) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Header colors={colors} styles={styles} onBack={() => router.back()} />
+      <View style={styles.container}>
         <View style={styles.centeredContent}>
           <TrendingUp size={48} color={colors.textMuted} />
           <Text style={styles.emptyTitle}>Historial de Tasas</Text>
@@ -124,14 +122,12 @@ export default function HistoryScreen() {
             Iniciar sesión
           </Button>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header colors={colors} styles={styles} onBack={() => router.back()} />
-
+    <View style={styles.container}>
       <ScrollView
         style={styles.flex}
         contentContainerStyle={styles.scrollContent}
@@ -339,35 +335,6 @@ export default function HistoryScreen() {
         {/* Summary stats */}
         {chartData.length > 0 && <StatsCard data={chartData} colors={colors} />}
       </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Header
-// ---------------------------------------------------------------------------
-
-function Header({
-  colors,
-  styles,
-  onBack,
-}: {
-  colors: ThemeColors;
-  styles: ReturnType<typeof getStyles>;
-  onBack: () => void;
-}) {
-  return (
-    <View style={styles.header}>
-      <View style={styles.headerLeft}>
-        <Button variant="ghost" onPress={onBack}>
-          <ChevronLeft size={24} color={colors.textMuted} />
-        </Button>
-      </View>
-      <View style={styles.headerCenter}>
-        <TrendingUp size={20} color={colors.primary} />
-        <Text style={styles.title}>Historial</Text>
-      </View>
-      <View style={styles.headerRight} />
     </View>
   );
 }
@@ -505,34 +472,6 @@ const getStyles = (colors: ThemeColors) =>
     container: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      backgroundColor: colors.backgroundSecondary,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    headerLeft: {
-      width: 48,
-      justifyContent: "center",
-    },
-    headerCenter: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 8,
-    },
-    headerRight: {
-      width: 48,
-    },
-    title: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: colors.text,
     },
     scrollContent: {
       padding: 16,

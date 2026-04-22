@@ -1,5 +1,4 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
 import { deleteUser } from "firebase/auth";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -13,32 +12,31 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import { track, trackOnce } from "../src/analytics/umami";
-import { auth, useAuth } from "../src/auth";
-import { Banner, Button, Card } from "../src/components/primitives";
-import { formatCustomRate, useCustomRates } from "../src/hooks/useCustomRates";
-import { useOnlineStatus } from "../src/hooks/useOnlineStatus";
+import { track, trackOnce } from "../../src/analytics/umami";
+import { auth, useAuth } from "../../src/auth";
+import { Banner, Button, Card } from "../../src/components/primitives";
+import {
+  formatCustomRate,
+  useCustomRates,
+} from "../../src/hooks/useCustomRates";
+import { useOnlineStatus } from "../../src/hooks/useOnlineStatus";
 import {
   Check,
-  ChevronLeft,
   ExternalLink,
   Info,
   Pencil,
-  Settings,
   Shield,
   Trash2,
   WifiOff,
   X,
-} from "../src/icons";
-import { getTrpcClient, setAuthToken } from "../src/lib/trpcClient";
-import { queryClient } from "../src/providers/QueryProvider";
-import { type ThemeColors, useTheme } from "../src/theme";
+} from "../../src/icons";
+import { getTrpcClient, setAuthToken } from "../../src/lib/trpcClient";
+import { queryClient } from "../../src/providers/QueryProvider";
+import { type ThemeColors, useTheme } from "../../src/theme";
 
 export default function SettingsScreen() {
   const { colors } = useTheme();
-  const router = useRouter();
   const styles = useMemo(() => getStyles(colors), [colors]);
   const isOnline = useOnlineStatus();
   const { user } = useAuth();
@@ -203,27 +201,7 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Button
-            variant="ghost"
-            onPress={() => {
-              track("settings_close");
-              router.back();
-            }}
-          >
-            <ChevronLeft size={24} color={colors.textMuted} />
-          </Button>
-        </View>
-        <View style={styles.headerCenter}>
-          <Settings size={20} color={colors.primary} />
-          <Text style={styles.headerTitle}>Configuraciones</Text>
-        </View>
-        <View style={styles.headerRight} />
-      </View>
-
+    <View style={styles.safe}>
       <ScrollView
         style={styles.flex}
         contentContainerStyle={styles.scrollContent}
@@ -529,7 +507,7 @@ export default function SettingsScreen() {
           </Button>
         </Card>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -544,36 +522,6 @@ const getStyles = (colors: ThemeColors) =>
       backgroundColor: colors.background,
     },
     flex: { flex: 1 },
-
-    // Header
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      backgroundColor: colors.backgroundSecondary,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border,
-    },
-    headerLeft: {
-      width: 48,
-      justifyContent: "center",
-    },
-    headerCenter: {
-      flex: 1,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 8,
-    },
-    headerRight: {
-      width: 48,
-    },
-    headerTitle: {
-      fontSize: 18,
-      fontWeight: "bold",
-      color: colors.text,
-    },
 
     // Scroll content
     scrollContent: {

@@ -53,9 +53,7 @@ export async function writeCachedCustomRatesList(
   }
 }
 
-export async function clearCachedCustomRatesList(
-  uid: string,
-): Promise<void> {
+export async function clearCachedCustomRatesList(uid: string): Promise<void> {
   try {
     await AsyncStorage.removeItem(`${STORAGE_PREFIX}${uid}`);
   } catch {

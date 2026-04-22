@@ -43,14 +43,8 @@ function RootLayoutNav() {
   return (
     <>
       <StatusBar style={isDark ? "light" : "dark"} />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="settings" />
-        <Stack.Screen name="history" />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen
           name="auth"
           options={{
