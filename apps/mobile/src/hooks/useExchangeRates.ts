@@ -299,5 +299,6 @@ export function useExchangeRates() {
     setSelectedDate,
     currentEffectiveDate,
     maxSelectableDate,
+    refetch: latestRatesQuery.refetch,
   };
 }

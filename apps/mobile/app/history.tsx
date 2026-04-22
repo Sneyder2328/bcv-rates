@@ -29,6 +29,7 @@ const RANGE_OPTIONS: { value: HistoryRange; label: string }[] = [
   { value: 14, label: "14d" },
   { value: 30, label: "30d" },
   { value: 90, label: "90d" },
+  { value: 365, label: "1a" },
 ];
 
 const SCREEN_WIDTH = Dimensions.get("window").width;

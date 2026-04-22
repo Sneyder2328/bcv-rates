@@ -8,7 +8,7 @@ import { useAuth } from "../auth";
 import { getTrpcClient } from "../lib/trpcClient";
 
 export type HistoryCurrency = "USD" | "EUR";
-export type HistoryRange = 7 | 14 | 30 | 90;
+export type HistoryRange = 7 | 14 | 30 | 90 | 365;
 
 export interface ChartDataPoint {
   /** Value for the LineChart data array */

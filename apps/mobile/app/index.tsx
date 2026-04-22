@@ -1,9 +1,10 @@
 import { formatAmount } from "@bcv-rates/domain";
 import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Linking,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -60,7 +61,18 @@ export default function HomeScreen() {
     setSelectedDate,
     currentEffectiveDate,
     maxSelectableDate,
+    refetch,
   } = useExchangeRates();
+
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   const {
     bolivars,
@@ -139,6 +151,14 @@ export default function HomeScreen() {
         style={styles.flex}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
       >
         {/* Offline banner */}
         {!isOnline && (
