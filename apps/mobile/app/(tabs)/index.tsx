@@ -272,6 +272,7 @@ export default function HomeScreen() {
               symbol="Bs."
               focusColor="indigo"
               inputSize="lg"
+              showCopy
             />
 
             <SectionDivider label="Tasas de Cambio" />
