@@ -1,4 +1,5 @@
 import { formatAmount } from "@bcv-rates/domain";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -10,6 +11,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { track } from "../../src/analytics/umami";
 import { useAuth } from "../../src/auth";
@@ -25,14 +27,11 @@ import { RateDateSelector } from "../../src/components/RateDateSelector";
 import { SavedRatesList } from "../../src/components/SavedRatesList";
 import { useCurrencyConverter } from "../../src/hooks/useCurrencyConverter";
 import { useCustomRates } from "../../src/hooks/useCustomRates";
-import {
-  formatRateDisplay,
-  useExchangeRates,
-} from "../../src/hooks/useExchangeRates";
+import { useExchangeRates } from "../../src/hooks/useExchangeRates";
 import {
   ExternalLink,
-  Info,
   LogOut,
+  Settings,
   Shield,
   User,
   WifiOff,
@@ -91,7 +90,6 @@ export default function HomeScreen() {
     error: savedRatesError,
   } = useCustomRates();
 
-  // Reset unit label when user signs out
   useEffect(() => {
     if (!user) setCustomUnitLabel("★");
   }, [user]);
@@ -119,7 +117,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <ScrollView
         style={styles.flex}
         contentContainerStyle={styles.scrollContent}
@@ -151,7 +149,7 @@ export default function HomeScreen() {
           </Banner>
         )}
 
-        {/* Error banner (only when online and we have an error) */}
+        {/* Error banner */}
         {isOnline && error && (
           <Banner variant="error" style={styles.banner}>
             <Text
@@ -162,143 +160,10 @@ export default function HomeScreen() {
           </Banner>
         )}
 
-        {/* Rates card */}
-        <Card style={styles.card}>
-          <View style={styles.ratesHeader}>
-            <Text style={styles.cardTitle}>Tasas de Cambio</Text>
-            {syncingRates && (
-              <ActivityIndicator size="small" color={colors.primary} />
-            )}
-          </View>
-
-          {isLoading && !rates ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={styles.loadingText}>Cargando tasas…</Text>
-            </View>
-          ) : rates ? (
-            <View style={styles.ratesContainer}>
-              <RateRow
-                label="USD"
-                rate={rates.usd}
-                previousRate={rates.usdPrevious}
-                colors={colors}
-                styles={styles}
-              />
-              <View style={styles.rateDivider} />
-              <RateRow
-                label="EUR"
-                rate={rates.eur}
-                previousRate={rates.eurPrevious}
-                colors={colors}
-                styles={styles}
-              />
-            </View>
-          ) : (
-            <Text style={styles.cardSubtitle}>{statusLine}</Text>
-          )}
-
-          {/* Status line */}
-          {rates && (
-            <View style={styles.statusBlock}>
-              <Text style={styles.statusLine}>{statusLine}</Text>
-              {secondaryStatusLine ? (
-                <Text style={styles.secondaryStatusLine}>
-                  {secondaryStatusLine}
-                </Text>
-              ) : null}
-            </View>
-          )}
-        </Card>
-
-        {/* Converter */}
-        <Card style={styles.card}>
-          {/* VES input */}
-          <CurrencyInput
-            label="Bolívares (VES)"
-            value={bolivars}
-            onChangeText={onBolivarsChange}
-            disabled={disabled}
-            symbol="Bs."
-            focusColor="indigo"
-            inputSize="lg"
-          />
-
-          <SectionDivider label="Tasas de Cambio" />
-
-          {/* USD / EUR side-by-side on wider screens, stacked on narrow */}
-          <View style={styles.converterRow}>
-            <View style={styles.converterCol}>
-              <CurrencyInput
-                label="Dólares (USD)"
-                value={usd}
-                onChangeText={onUsdChange}
-                disabled={disabled}
-                symbol="$"
-                focusColor="emerald"
-                showCopy
-                exchangeRate={
-                  rates ? `1 USD = ${formatAmount(rates.usd)} Bs` : undefined
-                }
-                deltaPercent={usdDelta}
-              />
-            </View>
-            <View style={styles.converterCol}>
-              <CurrencyInput
-                label="Euros (EUR)"
-                value={eur}
-                onChangeText={onEurChange}
-                disabled={disabled}
-                symbol="€"
-                focusColor="blue"
-                showCopy
-                exchangeRate={
-                  rates ? `1 EUR = ${formatAmount(rates.eur)} Bs` : undefined
-                }
-                deltaPercent={eurDelta}
-              />
-            </View>
-          </View>
-
-          <SectionDivider label="Tasas Personalizadas" />
-
-          <CustomRateInput
-            rateValue={customRate}
-            amountValue={customAmount}
-            onRateChange={onCustomRateChange}
-            onAmountChange={onCustomAmountChange}
-            disabled={disabled}
-            unitLabel={customUnitLabel}
-          />
-
-          {user && (
-            <SavedRatesList
-              items={savedRates}
-              isLoading={savedRatesLoading}
-              error={savedRatesError}
-              activeLabel={customUnitLabel}
-              onRateSelect={(label, formattedRate) => {
-                track("custom_rate_select", { source: "main" });
-                setCustomUnitLabel(label);
-                onCustomRateChange(formattedRate);
-              }}
-            />
-          )}
-
-          <SectionDivider label="Otra Fecha" />
-
-          <RateDateSelector
-            value={selectedDate ?? currentEffectiveDate}
-            max={maxSelectableDate}
-            disabled={!currentEffectiveDate}
-            onChange={setSelectedDate}
-          />
-        </Card>
-
-        {/* Auth section */}
+        {/* Navbar — user/auth section */}
         {authLoading ? null : user ? (
-          <Card style={styles.userCard}>
-            <View style={styles.userRow}>
+          <View style={styles.navbar}>
+            <View style={styles.navbarLeft}>
               <View style={styles.avatarCircle}>
                 <Text style={styles.avatarText}>
                   {(user.displayName ?? user.email ?? "?")
@@ -306,132 +171,204 @@ export default function HomeScreen() {
                     .toUpperCase()}
                 </Text>
               </View>
-              <View style={styles.userInfo}>
-                {user.displayName ? (
-                  <Text
-                    style={styles.userName}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {user.displayName}
-                  </Text>
-                ) : null}
+              <View style={styles.navbarUserInfo}>
                 <Text
-                  style={styles.userEmail}
+                  style={styles.navbarUserName}
                   numberOfLines={1}
-                  ellipsizeMode="middle"
+                  ellipsizeMode="tail"
                 >
-                  {user.email ?? user.uid}
+                  {user.displayName ?? user.email ?? "Usuario"}
                 </Text>
+                <Text style={styles.navbarUserSub}>Sesión activa</Text>
               </View>
-              <Button variant="ghost" onPress={handleSignOut}>
-                <LogOut size={20} color={colors.textMuted} />
+            </View>
+            <View style={styles.navbarActions}>
+              <Button
+                variant="ghost"
+                onPress={() => {
+                  track("settings_open");
+                  router.push("/settings" as never);
+                }}
+                style={styles.navbarIconBtn}
+              >
+                <Settings size={18} color={colors.textSecondary} />
+              </Button>
+              <Button
+                variant="ghost"
+                onPress={handleSignOut}
+                style={styles.navbarIconBtn}
+              >
+                <LogOut size={18} color={colors.textSecondary} />
               </Button>
             </View>
-          </Card>
+          </View>
         ) : (
-          <Button
-            variant="outline"
-            onPress={() => {
-              track("auth_open", { mode: "login" });
-              router.push("/auth");
-            }}
-            style={styles.authButton}
-          >
-            <User size={18} color={colors.textSecondary} />
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: "600",
-                color: colors.textSecondary,
-              }}
-            >
-              Iniciar sesión
-            </Text>
-          </Button>
+          <View style={styles.navbar}>
+            <View style={styles.navbarLeft}>
+              <View style={styles.navbarUserInfo}>
+                <Text style={styles.navbarUserName}>El Cambio</Text>
+                <Text style={styles.navbarUserSub}>No hay sesión activa</Text>
+              </View>
+            </View>
+            <View style={styles.navbarActions}>
+              <Button
+                variant="outline"
+                onPress={() => {
+                  track("auth_open", { mode: "login" });
+                  router.push("/auth");
+                }}
+                style={styles.navbarAuthBtn}
+              >
+                <User size={14} color={colors.textSecondary} />
+                <Text style={styles.navbarAuthBtnText}>Login</Text>
+              </Button>
+            </View>
+          </View>
         )}
 
-        {/* Footer: disclaimer, source, privacy */}
+        {/* Single main card */}
+        <Card style={styles.mainCard}>
+          {/* Gradient top strip */}
+          <LinearGradient
+            colors={["#6366f1", "#a855f7", "#ec4899"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.gradientStrip}
+          />
+
+          {/* Card header — like web's ExchangeRateHeader */}
+          <View style={styles.cardHeader}>
+            <View style={styles.cardHeaderLeft}>
+              <Text style={styles.cardTitle}>
+                El Cambio - Convertidor de bolívares
+              </Text>
+              <View style={styles.statusRow}>
+                {syncingRates && (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                )}
+                <Text style={styles.statusLine}>
+                  {isLoading && !rates ? "Cargando tasas…" : statusLine}
+                </Text>
+              </View>
+              {secondaryStatusLine ? (
+                <Text style={styles.secondaryStatusLine}>
+                  {secondaryStatusLine}
+                </Text>
+              ) : null}
+            </View>
+            <View style={styles.flagBadge}>
+              <Text style={styles.flagEmoji}>🇻🇪</Text>
+            </View>
+          </View>
+
+          {/* Card content */}
+          <View style={styles.cardContent}>
+            {/* VES input */}
+            <CurrencyInput
+              label="Bolívares (VES)"
+              value={bolivars}
+              onChangeText={onBolivarsChange}
+              disabled={disabled}
+              symbol="Bs."
+              focusColor="indigo"
+              inputSize="lg"
+            />
+
+            <SectionDivider label="Tasas de Cambio" />
+
+            <View style={styles.converterRow}>
+              <View style={styles.converterCol}>
+                <CurrencyInput
+                  label="Dólares (USD)"
+                  value={usd}
+                  onChangeText={onUsdChange}
+                  disabled={disabled}
+                  symbol="$"
+                  focusColor="emerald"
+                  showCopy
+                  exchangeRate={
+                    rates ? `1 USD = ${formatAmount(rates.usd)} Bs` : undefined
+                  }
+                  deltaPercent={usdDelta}
+                />
+              </View>
+              <View style={styles.converterCol}>
+                <CurrencyInput
+                  label="Euros (EUR)"
+                  value={eur}
+                  onChangeText={onEurChange}
+                  disabled={disabled}
+                  symbol="€"
+                  focusColor="blue"
+                  showCopy
+                  exchangeRate={
+                    rates ? `1 EUR = ${formatAmount(rates.eur)} Bs` : undefined
+                  }
+                  deltaPercent={eurDelta}
+                />
+              </View>
+            </View>
+
+            <SectionDivider label="Tasas Personalizadas" />
+
+            <CustomRateInput
+              rateValue={customRate}
+              amountValue={customAmount}
+              onRateChange={onCustomRateChange}
+              onAmountChange={onCustomAmountChange}
+              disabled={disabled}
+              unitLabel={customUnitLabel}
+            />
+
+            {user && (
+              <SavedRatesList
+                items={savedRates}
+                isLoading={savedRatesLoading}
+                error={savedRatesError}
+                activeLabel={customUnitLabel}
+                onRateSelect={(label, formattedRate) => {
+                  track("custom_rate_select", { source: "main" });
+                  setCustomUnitLabel(label);
+                  onCustomRateChange(formattedRate);
+                }}
+              />
+            )}
+
+            <SectionDivider label="Otra Fecha" />
+
+            <RateDateSelector
+              value={selectedDate ?? currentEffectiveDate}
+              max={maxSelectableDate}
+              disabled={!currentEffectiveDate}
+              onChange={setSelectedDate}
+            />
+          </View>
+        </Card>
+
+        {/* Footer — outside card, like web */}
         <View style={styles.footer}>
-          <View style={styles.disclaimerRow}>
-            <Info size={14} color={colors.textMuted} />
-            <Text style={styles.disclaimerText}>
-              Esta aplicación es solo para fines informativos. No constituye
-              asesoramiento financiero, de inversión ni de ningún otro tipo.
-            </Text>
-          </View>
           <Text style={styles.sourceText}>
-            Fuente: Banco Central de Venezuela (BCV)
+            Fuente: Banco Central de Venezuela
           </Text>
-          <View style={styles.footerLinks}>
-            <Button
-              variant="ghost"
-              onPress={() =>
-                Linking.openURL(
-                  "https://cambio.sneyderangulo.com/privacy-policy.html",
-                )
-              }
-              style={styles.footerLink}
-            >
-              <Shield size={14} color={colors.textMuted} />
-              <Text style={styles.footerLinkText}>Política de Privacidad</Text>
-              <ExternalLink size={12} color={colors.textMuted} />
-            </Button>
-          </View>
+          <Button
+            variant="ghost"
+            onPress={() =>
+              Linking.openURL(
+                "https://cambio.sneyderangulo.com/privacy-policy.html",
+              )
+            }
+            style={styles.footerLink}
+          >
+            <Shield size={12} color={colors.textMuted} />
+            <Text style={styles.footerLinkText}>Política de Privacidad</Text>
+            <ExternalLink size={10} color={colors.textMuted} />
+          </Button>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
-// -------------------------------------------------------------------
-// Rate row component
-// -------------------------------------------------------------------
-
-function RateRow({
-  label,
-  rate,
-  previousRate,
-  colors,
-  styles,
-}: {
-  label: string;
-  rate: number;
-  previousRate?: number;
-  colors: ThemeColors;
-  styles: ReturnType<typeof getStyles>;
-}) {
-  const formatted = formatRateDisplay(rate);
-
-  let changeIndicator: string | null = null;
-  let changeColor = colors.textMuted;
-
-  if (previousRate !== undefined && previousRate !== rate) {
-    if (rate > previousRate) {
-      changeIndicator = "▲";
-      changeColor = colors.bannerSuccess.text;
-    } else {
-      changeIndicator = "▼";
-      changeColor = colors.bannerError.text;
-    }
-  }
-
-  return (
-    <View style={styles.rateRow}>
-      <Text style={styles.rateLabel}>{label}</Text>
-      <View style={styles.rateValueRow}>
-        <Text style={styles.rateValue}>{formatted}</Text>
-        <Text style={styles.rateCurrency}> Bs.</Text>
-        {changeIndicator && (
-          <Text style={[styles.rateChange, { color: changeColor }]}>
-            {" "}
-            {changeIndicator}
-          </Text>
-        )}
-      </View>
-    </View>
-  );
-}
 
 // -------------------------------------------------------------------
 // Styles
@@ -445,25 +382,13 @@ const getStyles = (colors: ThemeColors) =>
       backgroundColor: colors.background,
     },
     scrollContent: {
-      padding: 16,
+      padding: 10,
       paddingBottom: 32,
     },
-    card: {
-      marginBottom: 16,
-    },
-    cardTitle: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: colors.text,
-      marginBottom: 6,
-    },
-    cardSubtitle: {
-      fontSize: 14,
-      color: colors.textMuted,
-    },
+
     // Banners
     banner: {
-      marginBottom: 12,
+      marginBottom: 8,
     },
     bannerRow: {
       flexDirection: "row",
@@ -474,152 +399,175 @@ const getStyles = (colors: ThemeColors) =>
       fontSize: 13,
       flexShrink: 1,
     },
-    // Rates
-    ratesHeader: {
+
+    // Navbar (user/auth bar above card)
+    navbar: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginBottom: 6,
-    },
-    ratesContainer: {
-      gap: 4,
-    },
-    rateRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.cardBackground,
+      paddingHorizontal: 12,
       paddingVertical: 8,
+      marginBottom: 10,
     },
-    rateLabel: {
-      fontSize: 16,
-      fontWeight: "600",
-      color: colors.textMuted,
-    },
-    rateValueRow: {
+    navbarLeft: {
       flexDirection: "row",
-      alignItems: "baseline",
-    },
-    rateValue: {
-      fontSize: 22,
-      fontWeight: "700",
-      color: colors.text,
-    },
-    rateCurrency: {
-      fontSize: 14,
-      color: colors.textMuted,
-    },
-    rateChange: {
-      fontSize: 14,
-      fontWeight: "600",
-    },
-    rateDivider: {
-      height: 1,
-      backgroundColor: colors.border,
-    },
-    statusLine: {
-      fontSize: 12,
-      color: colors.textMuted,
-      textAlign: "center",
-    },
-    statusBlock: {
-      marginTop: 8,
-      gap: 4,
-    },
-    secondaryStatusLine: {
-      fontSize: 12,
-      color: colors.bannerWarning.text,
-      textAlign: "center",
-      fontWeight: "600",
-    },
-    loadingContainer: {
-      paddingVertical: 24,
       alignItems: "center",
-      gap: 12,
-    },
-    loadingText: {
-      fontSize: 14,
-      color: colors.textMuted,
-    },
-    // Converter
-    converterRow: {
-      flexDirection: "row",
-      gap: 12,
-    },
-    converterCol: {
+      gap: 10,
       flex: 1,
-    },
-    // Auth section
-    authButton: {
-      marginTop: 4,
-    },
-    userCard: {
-      marginTop: 4,
-    },
-    userRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 12,
+      minWidth: 0,
     },
     avatarCircle: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 36,
+      height: 36,
+      borderRadius: 10,
       backgroundColor: colors.primary,
       alignItems: "center",
       justifyContent: "center",
     },
     avatarText: {
-      fontSize: 16,
+      fontSize: 14,
       fontWeight: "700",
       color: colors.primaryText,
     },
-    userInfo: {
+    navbarUserInfo: {
       flex: 1,
+      minWidth: 0,
     },
-    userName: {
+    navbarUserName: {
       fontSize: 14,
       fontWeight: "600",
       color: colors.text,
     },
-    userEmail: {
+    navbarUserSub: {
       fontSize: 12,
       color: colors.textMuted,
     },
-    // Footer
-    footer: {
-      marginTop: 8,
-      paddingTop: 16,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-      gap: 10,
-    },
-    disclaimerRow: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      gap: 8,
-      paddingTop: 2,
-    },
-    disclaimerText: {
-      flex: 1,
-      fontSize: 11,
-      lineHeight: 16,
-      color: colors.textMuted,
-    },
-    sourceText: {
-      fontSize: 11,
-      color: colors.textMuted,
-      textAlign: "center",
-    },
-    footerLinks: {
-      alignItems: "center",
-    },
-    footerLink: {
+    navbarActions: {
       flexDirection: "row",
       alignItems: "center",
       gap: 6,
     },
-    footerLinkText: {
+    navbarIconBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: 0,
+      paddingVertical: 0,
+    },
+    navbarAuthBtn: {
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 10,
+      flexDirection: "row",
+      gap: 6,
+    },
+    navbarAuthBtnText: {
       fontSize: 12,
+      fontWeight: "600",
+      color: colors.textSecondary,
+    },
+
+    // Main card
+    mainCard: {
+      padding: 0,
+      overflow: "hidden",
+    },
+    gradientStrip: {
+      height: 3,
+      width: "100%",
+    },
+
+    // Card header (like web ExchangeRateHeader)
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      padding: 14,
+      paddingBottom: 10,
+    },
+    cardHeaderLeft: {
+      flex: 1,
+      gap: 4,
+    },
+    cardTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.text,
+    },
+    statusRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      marginTop: 2,
+    },
+    statusLine: {
+      fontSize: 13,
+      fontWeight: "500",
+      color: colors.textMuted,
+    },
+    secondaryStatusLine: {
+      fontSize: 12,
+      color: colors.bannerWarning.text,
+      fontWeight: "500",
+      marginTop: 2,
+    },
+    flagBadge: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.backgroundSecondary,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: 10,
+    },
+    flagEmoji: {
+      fontSize: 18,
+    },
+
+    // Card content
+    cardContent: {
+      paddingHorizontal: 14,
+      paddingBottom: 14,
+      gap: 12,
+    },
+
+    // Converter
+    converterRow: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    converterCol: {
+      flex: 1,
+    },
+
+    // Footer — outside card
+    footer: {
+      marginTop: 14,
+      alignItems: "center",
+      gap: 4,
+    },
+    sourceText: {
+      fontSize: 12,
+      color: colors.textMuted,
+      fontWeight: "500",
+    },
+    footerLink: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+    },
+    footerLinkText: {
+      fontSize: 11,
       color: colors.textMuted,
     },
   });

@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { track } from "../../src/analytics/umami";
 import { useAuth } from "../../src/auth";
 import { Banner, Button, Card } from "../../src/components/primitives";
@@ -105,7 +106,7 @@ export default function HistoryScreen() {
   // Not authenticated — prompt sign-in
   if (!user) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={["top"]}>
         <View style={styles.centeredContent}>
           <TrendingUp size={48} color={colors.textMuted} />
           <Text style={styles.emptyTitle}>Historial de Tasas</Text>
@@ -122,12 +123,12 @@ export default function HistoryScreen() {
             Iniciar sesión
           </Button>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <ScrollView
         style={styles.flex}
         contentContainerStyle={styles.scrollContent}
@@ -335,7 +336,7 @@ export default function HistoryScreen() {
         {/* Summary stats */}
         {chartData.length > 0 && <StatsCard data={chartData} colors={colors} />}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -12,6 +12,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 import { track, trackOnce } from "../../src/analytics/umami";
 import { auth, useAuth } from "../../src/auth";
@@ -201,7 +202,7 @@ export default function SettingsScreen() {
   }
 
   return (
-    <View style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView
         style={styles.flex}
         contentContainerStyle={styles.scrollContent}
@@ -507,7 +508,7 @@ export default function SettingsScreen() {
           </Button>
         </Card>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
