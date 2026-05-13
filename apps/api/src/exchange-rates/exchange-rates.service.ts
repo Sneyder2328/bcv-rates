@@ -325,7 +325,7 @@ export class ExchangeRatesService implements OnModuleInit {
   private extractRateFromHtml(html: string, blockId: "dolar" | "euro"): string {
     const match = html.match(
       new RegExp(
-        `id="${blockId}"[\\s\\S]*?<strong>\\s*([^<]+?)\\s*<\\/strong>`,
+        `id="${blockId}"[\\s\\S]*?<strong[^>]*>\\s*([^<]+?)\\s*<\\/strong>`,
         "i",
       ),
     );
