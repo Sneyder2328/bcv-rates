@@ -81,9 +81,9 @@ export function CustomRateInput({
             value={rateValue}
             onChange={(e) => onRateChange(e.target.value)}
             disabled={disabled}
-            className="h-12 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 rounded-xl transition-all"
+            className="h-12 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-brand/50 focus:ring-4 focus:ring-brand/10 rounded-xl transition-all"
           />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 group-focus-within:text-violet-400 transition-colors">
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 group-focus-within:text-brand transition-colors">
             Bs.
           </div>
         </div>
@@ -122,9 +122,9 @@ export function CustomRateInput({
             value={amountValue}
             onChange={(e) => onAmountChange(e.target.value)}
             disabled={disabled}
-            className="h-12 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/10 rounded-xl transition-all"
+            className="h-12 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-brand/50 focus:ring-4 focus:ring-brand/10 rounded-xl transition-all"
           />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 group-focus-within:text-violet-400 transition-colors">
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500 group-focus-within:text-brand transition-colors">
             {unitLabel}
           </div>
         </div>

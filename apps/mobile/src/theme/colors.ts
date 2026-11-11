@@ -19,7 +19,7 @@ export interface ThemeColors {
   border: string;
   borderError: string;
 
-  // Primary (blue)
+  // Brand
   primary: string;
   primaryText: string;
 
@@ -46,10 +46,8 @@ export interface ThemeColors {
   disabledText: string;
 
   // Accent colors (converter)
-  accentIndigo: string;
   accentEmerald: string;
   accentBlue: string;
-  accentViolet: string;
 }
 
 export const lightColors: ThemeColors = {
@@ -65,7 +63,7 @@ export const lightColors: ThemeColors = {
   border: "#e5e7eb",
   borderError: "#ef4444",
 
-  primary: "#2563eb",
+  primary: "#08705a",
   primaryText: "#ffffff",
 
   secondary: "#64748b",
@@ -85,10 +83,8 @@ export const lightColors: ThemeColors = {
 
   disabledText: "#9ca3af",
 
-  accentIndigo: "#6366f1",
   accentEmerald: "#10b981",
   accentBlue: "#3b82f6",
-  accentViolet: "#8b5cf6",
 };
 
 export const darkColors: ThemeColors = {
@@ -104,8 +100,8 @@ export const darkColors: ThemeColors = {
   border: "#374151",
   borderError: "#f87171",
 
-  primary: "#3b82f6",
-  primaryText: "#ffffff",
+  primary: "#63f5c3",
+  primaryText: "#053a3c",
 
   secondary: "#94a3b8",
   secondaryText: "#1e293b",
@@ -124,8 +120,6 @@ export const darkColors: ThemeColors = {
 
   disabledText: "#6b7280",
 
-  accentIndigo: "#818cf8",
   accentEmerald: "#34d399",
   accentBlue: "#60a5fa",
-  accentViolet: "#a78bfa",
 };

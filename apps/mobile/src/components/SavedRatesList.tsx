@@ -53,8 +53,8 @@ export function SavedRatesList({
                 style={({ pressed }) => [
                   styles.rateCard,
                   isActive && {
-                    borderColor: colors.accentIndigo,
-                    backgroundColor: `${colors.accentIndigo}15`,
+                    borderColor: colors.primary,
+                    backgroundColor: `${colors.primary}15`,
                   },
                   pressed && styles.pressed,
                 ]}

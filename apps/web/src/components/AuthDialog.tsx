@@ -139,7 +139,7 @@ export function AuthDialog({
                 placeholder="tu@email.com"
                 autoComplete={mode === "login" ? "email" : "email"}
                 disabled={submitting}
-                className="bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
+                className="bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-brand/50 focus:ring-4 focus:ring-brand/10"
               />
             </div>
 
@@ -160,14 +160,14 @@ export function AuthDialog({
                   mode === "login" ? "current-password" : "new-password"
                 }
                 disabled={submitting}
-                className="bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
+                className="bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-brand/50 focus:ring-4 focus:ring-brand/10"
               />
             </div>
 
             <button
               type="submit"
               disabled={submitting || !email || !password}
-              className="w-full rounded-xl bg-indigo-600/80 border border-indigo-500/60 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-600 hover:border-indigo-400 transition-colors disabled:opacity-50"
+              className="w-full rounded-xl bg-brand border border-brand px-3 py-2 text-sm font-semibold text-brand-deep hover:bg-brand-hover hover:border-brand-hover transition-colors disabled:opacity-50"
             >
               {mode === "login" ? "Login" : "Sign up"}
             </button>

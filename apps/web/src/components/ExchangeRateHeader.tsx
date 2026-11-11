@@ -24,7 +24,7 @@ export function ExchangeRateHeader({
               <span className="inline-flex items-center gap-2">
                 <Loader2
                   size={16}
-                  className="animate-spin"
+                  className="animate-spin text-brand"
                   aria-hidden="true"
                 />
                 {statusLine}

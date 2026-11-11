@@ -119,7 +119,7 @@ export function HistoryChart() {
         <select
           value={days}
           onChange={(e) => setDays(Number(e.target.value))}
-          className="rounded-lg border border-gray-700 bg-gray-900/50 px-2 py-1 text-xs text-gray-300 outline-none focus:border-purple-500"
+          className="rounded-lg border border-gray-700 bg-gray-900/50 px-2 py-1 text-xs text-gray-300 outline-none focus:border-brand"
         >
           <option value={7}>7d</option>
           <option value={14}>14d</option>

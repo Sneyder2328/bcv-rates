@@ -51,7 +51,7 @@ export function CustomRatesList({
               className={[
                 "rounded-xl border px-3 py-2 text-left transition-colors",
                 isActive
-                  ? "border-indigo-500/50 bg-indigo-500/10"
+                  ? "border-brand/50 bg-brand/10"
                   : "border-zinc-800/60 bg-zinc-950/40 hover:border-zinc-700/70",
               ].join(" ")}
               title={`Usar ${r.label}`}

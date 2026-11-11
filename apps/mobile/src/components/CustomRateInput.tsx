@@ -81,6 +81,8 @@ export function CustomRateInput({
             keyboardType="decimal-pad"
             placeholder="0,00"
             placeholderTextColor={colors.inputPlaceholder}
+            selectionColor={`${colors.primary}55`}
+            cursorColor={colors.primary}
             selectTextOnFocus
             onFocus={() => setRateFocused(true)}
             onBlur={() => setRateFocused(false)}
@@ -89,9 +91,7 @@ export function CustomRateInput({
               {
                 paddingRight: 72,
                 backgroundColor: colors.inputBackground,
-                borderColor: rateFocused
-                  ? colors.accentViolet
-                  : colors.inputBorder,
+                borderColor: rateFocused ? colors.primary : colors.inputBorder,
                 color: colors.inputText,
               },
             ]}
@@ -115,7 +115,7 @@ export function CustomRateInput({
               style={[
                 styles.symbol,
                 {
-                  color: rateFocused ? colors.accentViolet : colors.textMuted,
+                  color: rateFocused ? colors.primary : colors.textMuted,
                 },
               ]}
             >
@@ -136,6 +136,8 @@ export function CustomRateInput({
             keyboardType="decimal-pad"
             placeholder="0,00"
             placeholderTextColor={colors.inputPlaceholder}
+            selectionColor={`${colors.primary}55`}
+            cursorColor={colors.primary}
             selectTextOnFocus
             onFocus={() => setAmountFocused(true)}
             onBlur={() => setAmountFocused(false)}
@@ -145,7 +147,7 @@ export function CustomRateInput({
                 paddingRight: 72,
                 backgroundColor: colors.inputBackground,
                 borderColor: amountFocused
-                  ? colors.accentViolet
+                  ? colors.primary
                   : colors.inputBorder,
                 color: colors.inputText,
               },
@@ -170,7 +172,7 @@ export function CustomRateInput({
               style={[
                 styles.symbol,
                 {
-                  color: amountFocused ? colors.accentViolet : colors.textMuted,
+                  color: amountFocused ? colors.primary : colors.textMuted,
                 },
               ]}
             >

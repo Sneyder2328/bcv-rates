@@ -5,15 +5,12 @@ import Toast from "react-native-toast-message";
 import { Check, Copy } from "../icons";
 import { type ThemeColors, useTheme } from "../theme";
 
-type FocusColor = "indigo" | "emerald" | "blue" | "violet";
-
 interface CurrencyInputProps {
   label: string;
   value: string;
   onChangeText: (value: string) => void;
   disabled?: boolean;
   symbol: string;
-  focusColor: FocusColor;
   exchangeRate?: string;
   inputSize?: "sm" | "lg";
   deltaPercent?: number;
@@ -26,7 +23,6 @@ export function CurrencyInput({
   onChangeText,
   disabled = false,
   symbol,
-  focusColor,
   exchangeRate,
   inputSize = "sm",
   deltaPercent,
@@ -36,14 +32,6 @@ export function CurrencyInput({
   const [isFocused, setIsFocused] = useState(false);
   const [copied, setCopied] = useState(false);
   const styles = useMemo(() => getStyles(colors), [colors]);
-
-  const accentColorMap: Record<FocusColor, string> = {
-    indigo: colors.accentIndigo,
-    emerald: colors.accentEmerald,
-    blue: colors.accentBlue,
-    violet: colors.accentViolet,
-  };
-  const accent = accentColorMap[focusColor];
 
   const height = inputSize === "lg" ? 56 : 48;
 
@@ -73,6 +61,8 @@ export function CurrencyInput({
           keyboardType="decimal-pad"
           placeholder="0,00"
           placeholderTextColor={colors.inputPlaceholder}
+          selectionColor={`${colors.primary}55`}
+          cursorColor={colors.primary}
           selectTextOnFocus
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -81,7 +71,7 @@ export function CurrencyInput({
             {
               height,
               backgroundColor: colors.inputBackground,
-              borderColor: isFocused ? accent : colors.inputBorder,
+              borderColor: isFocused ? colors.primary : colors.inputBorder,
               color: colors.inputText,
               fontSize: inputSize === "lg" ? 20 : 16,
               paddingRight: showCopy ? 72 : 44,
@@ -108,7 +98,7 @@ export function CurrencyInput({
           <Text
             style={[
               styles.symbol,
-              { color: isFocused ? accent : colors.textMuted },
+              { color: isFocused ? colors.primary : colors.textMuted },
             ]}
           >
             {symbol}

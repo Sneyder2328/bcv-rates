@@ -20,6 +20,12 @@
       "indentStyle": "space",
       "indentWidth": 2
     },
+    "overrides": [
+      {
+        "includes": ["apps/web/**/*.css"],
+        "css": { "parser": { "tailwindDirectives": true } }
+      }
+    ],
     "assist": {
       "actions": {
         "source": {

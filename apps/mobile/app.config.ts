@@ -13,6 +13,8 @@ const REQUIRED_ENV_KEYS = [
   "GOOGLE_WEB_CLIENT_ID",
 ] as const;
 
+const BRAND_BACKGROUND_COLOR = "#053A3C";
+
 function loadEnvFile(filePath: string) {
   const raw = readFileSync(filePath, "utf8");
   for (const line of raw.split(/\r?\n/)) {
@@ -61,7 +63,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   splash: {
     image: "./assets/splash-icon.png",
     resizeMode: "contain",
-    backgroundColor: "#000000",
+    backgroundColor: BRAND_BACKGROUND_COLOR,
   },
   ios: {
     supportsTablet: true,
@@ -72,7 +74,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     icon: "./assets/icon.png",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#000000",
+      backgroundColor: BRAND_BACKGROUND_COLOR,
     },
     edgeToEdgeEnabled: true,
     package: "com.sneyderangulo.elcambio",

@@ -16,7 +16,7 @@ type MixedCurrencyCalculatorRowProps = {
 };
 
 const selectClassName =
-  "h-11 w-full rounded-xl border border-zinc-800/80 bg-zinc-950/50 px-3 text-[16px] text-zinc-100 outline-none transition focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:opacity-50";
+  "h-11 w-full rounded-xl border border-zinc-800/80 bg-zinc-950/50 px-3 text-[16px] text-zinc-100 outline-none transition focus:border-brand/50 focus:ring-4 focus:ring-brand/10 disabled:cursor-not-allowed disabled:opacity-50";
 
 export function MixedCurrencyCalculatorRow({
   rowId,
@@ -79,7 +79,7 @@ export function MixedCurrencyCalculatorRow({
             placeholder="0,00"
             value={amount}
             onChange={(event) => onAmountChange(event.target.value)}
-            className="h-11 border-zinc-800/80 bg-zinc-950/50 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
+            className="h-11 border-zinc-800/80 bg-zinc-950/50 text-zinc-100 placeholder:text-zinc-600 focus:border-brand/50 focus:ring-4 focus:ring-brand/10"
           />
         </div>
 

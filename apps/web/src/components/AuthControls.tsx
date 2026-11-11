@@ -99,7 +99,7 @@ export function AuthControls() {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="inline-flex items-center gap-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-100 ring-1 ring-indigo-500/20 px-3 py-2 text-xs font-semibold transition-colors"
+          className="inline-flex items-center gap-2 rounded-xl bg-brand/20 hover:bg-brand/30 text-brand ring-1 ring-brand/20 px-3 py-2 text-xs font-semibold transition-colors"
         >
           <LogIn size={14} />
           Entrar
@@ -151,7 +151,7 @@ export function AuthControls() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
-              className="w-full h-10 rounded-xl bg-zinc-900/40 border border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 px-3 text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/40"
+              className="w-full h-10 rounded-xl bg-zinc-900/40 border border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 px-3 text-sm focus:outline-none focus:ring-4 focus:ring-brand/10 focus:border-brand/40"
               type="email"
               autoComplete="email"
             />
@@ -159,7 +159,7 @@ export function AuthControls() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Contraseña"
-              className="w-full h-10 rounded-xl bg-zinc-900/40 border border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 px-3 text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/40"
+              className="w-full h-10 rounded-xl bg-zinc-900/40 border border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 px-3 text-sm focus:outline-none focus:ring-4 focus:ring-brand/10 focus:border-brand/40"
               type="password"
               autoComplete={
                 mode === "signIn" ? "current-password" : "new-password"
@@ -170,7 +170,7 @@ export function AuthControls() {
               type="button"
               disabled={submitting}
               onClick={handleEmailAuth}
-              className="w-full h-10 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 disabled:opacity-50 text-indigo-100 ring-1 ring-indigo-500/20 px-3 text-sm font-semibold transition-colors"
+              className="w-full h-10 rounded-xl bg-brand/20 hover:bg-brand/30 disabled:opacity-50 text-brand ring-1 ring-brand/20 px-3 text-sm font-semibold transition-colors"
             >
               {mode === "signIn" ? "Entrar" : "Crear cuenta"}
             </button>

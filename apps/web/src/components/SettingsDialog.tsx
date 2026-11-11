@@ -247,7 +247,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                       disabled={
                         createMutation.isPending || atLimit || !isOnline
                       }
-                      className="h-11 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
+                      className="h-11 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-brand/50 focus:ring-4 focus:ring-brand/10"
                     />
                   </div>
 
@@ -267,7 +267,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                       disabled={
                         createMutation.isPending || atLimit || !isOnline
                       }
-                      className="h-11 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
+                      className="h-11 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-brand/50 focus:ring-4 focus:ring-brand/10"
                     />
                   </div>
                 </div>
@@ -281,7 +281,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                     atLimit ||
                     !isOnline
                   }
-                  className="w-full rounded-xl bg-indigo-600/80 border border-indigo-500/60 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-600 hover:border-indigo-400 transition-colors disabled:opacity-50"
+                  className="w-full rounded-xl bg-brand border border-brand px-3 py-2 text-sm font-semibold text-brand-deep hover:bg-brand-hover hover:border-brand-hover transition-colors disabled:opacity-50"
                 >
                   {!isOnline
                     ? "Modo solo lectura"
@@ -329,7 +329,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                                   disabled={
                                     updateMutation.isPending || !isOnline
                                   }
-                                  className="h-10 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
+                                  className="h-10 bg-zinc-950/50 border-zinc-800/80 text-zinc-100 placeholder:text-zinc-600 focus:border-brand/50 focus:ring-4 focus:ring-brand/10"
                                 />
                               </div>
                             ) : (

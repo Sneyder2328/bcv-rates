@@ -93,7 +93,7 @@ export function Navbar({ onOpenSettings, onOpenAuth }: NavbarProps) {
             <button
               type="button"
               onClick={() => onOpenAuth("signup")}
-              className="rounded-xl bg-indigo-600/80 border border-indigo-500/60 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-600 hover:border-indigo-400 transition-colors"
+              className="rounded-xl bg-brand border border-brand px-3 py-2 text-xs font-semibold text-brand-deep hover:bg-brand-hover hover:border-brand-hover transition-colors"
             >
               Sign up
             </button>

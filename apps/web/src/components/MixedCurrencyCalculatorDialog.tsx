@@ -58,7 +58,7 @@ export function MixedCurrencyCalculatorDialog({
       <div className="relative z-10 flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-zinc-800/50 bg-zinc-900/80 shadow-2xl ring-1 ring-white/5 backdrop-blur-xl">
         <div className="flex items-center justify-between border-b border-zinc-800/50 px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800/80 bg-zinc-950/50 text-indigo-300">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800/80 bg-zinc-950/50 text-brand">
               <Calculator size={18} />
             </div>
             <div>
@@ -162,7 +162,7 @@ export function MixedCurrencyCalculatorDialog({
                           onClick={() => setResultCurrency(currency)}
                           className={`rounded-xl border px-3 py-2 text-sm font-semibold transition-colors ${
                             resultCurrency === currency
-                              ? "border-indigo-500/50 bg-indigo-500/15 text-indigo-100"
+                              ? "border-brand/50 bg-brand/15 text-brand"
                               : "border-zinc-800/80 bg-zinc-950/50 text-zinc-300 hover:border-zinc-700 hover:text-zinc-100"
                           }`}
                         >

@@ -1,5 +1,4 @@
 import { formatAmount } from "@bcv-rates/domain";
-import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -228,13 +227,7 @@ export default function HomeScreen() {
 
         {/* Single main card */}
         <Card style={styles.mainCard}>
-          {/* Gradient top strip */}
-          <LinearGradient
-            colors={["#6366f1", "#a855f7", "#ec4899"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.gradientStrip}
-          />
+          <View style={styles.accentStrip} />
 
           {/* Card header — like web's ExchangeRateHeader */}
           <View style={styles.cardHeader}>
@@ -270,7 +263,6 @@ export default function HomeScreen() {
               onChangeText={onBolivarsChange}
               disabled={disabled}
               symbol="Bs."
-              focusColor="indigo"
               inputSize="lg"
               showCopy
             />
@@ -285,7 +277,6 @@ export default function HomeScreen() {
                   onChangeText={onUsdChange}
                   disabled={disabled}
                   symbol="$"
-                  focusColor="emerald"
                   showCopy
                   exchangeRate={
                     rates ? `1 USD = ${formatAmount(rates.usd)} Bs` : undefined
@@ -300,7 +291,6 @@ export default function HomeScreen() {
                   onChangeText={onEurChange}
                   disabled={disabled}
                   symbol="€"
-                  focusColor="blue"
                   showCopy
                   exchangeRate={
                     rates ? `1 EUR = ${formatAmount(rates.eur)} Bs` : undefined
@@ -480,7 +470,8 @@ const getStyles = (colors: ThemeColors) =>
       padding: 0,
       overflow: "hidden",
     },
-    gradientStrip: {
+    accentStrip: {
+      backgroundColor: colors.primary,
       height: 3,
       width: "100%",
     },

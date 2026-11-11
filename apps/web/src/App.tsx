@@ -112,7 +112,7 @@ function App() {
     : undefined;
 
   return (
-    <div className="relative min-h-screen w-full bg-[#09090b] text-zinc-100 flex items-center justify-center p-1 sm:p-4 font-sans overflow-hidden selection:bg-indigo-500/30">
+    <div className="relative min-h-screen w-full bg-[#09090b] text-zinc-100 flex items-center justify-center p-1 sm:p-4 font-sans overflow-hidden selection:bg-brand/30">
       <BackgroundDecoration />
 
       <div className="relative z-10 w-full max-w-md animate-in fade-in zoom-in-95 duration-500">
@@ -147,7 +147,7 @@ function App() {
 
         <Card className="border-zinc-800/50 bg-zinc-900/40 backdrop-blur-xl shadow-2xl overflow-hidden ring-1 ring-white/5">
           {/* Decorative Top Line */}
-          <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-80" />
+          <div className="absolute top-0 left-0 w-full h-1 bg-brand" />
 
           <ExchangeRateHeader
             syncing={syncingRates}
@@ -164,7 +164,6 @@ function App() {
               onChange={onBolivarsChange}
               disabled={disabled}
               symbol="Bs."
-              focusColor="indigo"
               inputSize="lg"
             />
 
@@ -180,7 +179,6 @@ function App() {
                 onChange={onUsdChange}
                 disabled={disabled}
                 symbol="$"
-                focusColor="emerald"
                 exchangeRate={
                   rates ? `1 USD = ${formatAmount(rates.usd)} Bs` : undefined
                 }
@@ -195,7 +193,6 @@ function App() {
                 onChange={onEurChange}
                 disabled={disabled}
                 symbol="€"
-                focusColor="blue"
                 exchangeRate={
                   rates ? `1 EUR = ${formatAmount(rates.eur)} Bs` : undefined
                 }
@@ -213,7 +210,7 @@ function App() {
               className="flex w-full items-center rounded-2xl border border-zinc-800/60 bg-zinc-950/35 px-4 py-3 text-left transition hover:border-zinc-700 hover:bg-zinc-950/55 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800/80 bg-zinc-950/60 text-indigo-300">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800/80 bg-zinc-950/60 text-brand">
                   <Calculator size={18} />
                 </div>
                 <div>

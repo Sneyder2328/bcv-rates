@@ -191,9 +191,8 @@ export function RateDateSelector({
                   day_button:
                     "flex h-10 w-10 items-center justify-center rounded-xl text-sm text-zinc-300 transition hover:bg-zinc-800/80 hover:text-white",
                   selected:
-                    "bg-gradient-to-br from-amber-400 to-orange-500 text-black hover:bg-gradient-to-br hover:from-amber-400 hover:to-orange-500 hover:text-black",
-                  today:
-                    "ring-1 ring-emerald-500/60 text-emerald-300 hover:text-emerald-200",
+                    "[&>button]:bg-brand [&>button]:text-brand-deep [&>button:hover]:bg-brand-hover [&>button:hover]:text-brand-deep",
+                  today: "[&>button]:ring-1 [&>button]:ring-brand/60",
                   outside: "text-zinc-700",
                   disabled: "pointer-events-none opacity-30",
                 }}
