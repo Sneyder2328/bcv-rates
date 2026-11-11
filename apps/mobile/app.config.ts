@@ -54,34 +54,38 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: "El Cambio",
   slug: "elcambio",
-  version: "1.2.0",
+  version: "1.2.2",
   orientation: "portrait",
   icon: "./assets/icon.png",
   userInterfaceStyle: "automatic",
-  newArchEnabled: true,
   scheme: "elcambio",
-  splash: {
-    image: "./assets/splash-icon.png",
-    resizeMode: "contain",
-    backgroundColor: BRAND_BACKGROUND_COLOR,
-  },
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.sneyderangulo.elcambio",
   },
   android: {
-    jsEngine: "hermes",
     icon: "./assets/icon.png",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
       backgroundColor: BRAND_BACKGROUND_COLOR,
     },
-    edgeToEdgeEnabled: true,
     package: "com.sneyderangulo.elcambio",
-    versionCode: 7,
+    versionCode: 9,
     googleServicesFile: "./google-services.json",
   },
-  plugins: ["expo-router", "@react-native-google-signin/google-signin"],
+  plugins: [
+    "expo-router",
+    "@react-native-google-signin/google-signin",
+    [
+      "expo-splash-screen",
+      {
+        image: "./assets/splash-icon.png",
+        imageWidth: 100,
+        resizeMode: "contain",
+        backgroundColor: BRAND_BACKGROUND_COLOR,
+      },
+    ],
+  ],
   extra: {
     eas: {
       projectId: "dc72637c-307d-494a-9a86-aec419a7cc62",

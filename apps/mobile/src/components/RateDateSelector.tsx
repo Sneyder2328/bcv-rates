@@ -2,7 +2,7 @@ import DateTimePicker, {
   DateTimePickerAndroid,
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Modal,
   Platform,
@@ -60,13 +60,8 @@ export function RateDateSelector({
   const maxDate = max ? parseDatePart(max) : undefined;
   const [iosModalOpen, setIosModalOpen] = useState(false);
   const [iosDraftDate, setIosDraftDate] = useState<Date>(
-    selectedDate ?? maxDate ?? new Date(),
+    () => selectedDate ?? maxDate ?? new Date(),
   );
-
-  useEffect(() => {
-    if (iosModalOpen) return;
-    setIosDraftDate(selectedDate ?? maxDate ?? new Date());
-  }, [iosModalOpen, maxDate, selectedDate]);
 
   const currentValue = typeof value === "string" && value ? value : null;
   const canGoPrev = Boolean(currentValue) && !disabled;
@@ -201,10 +196,7 @@ export function RateDateSelector({
               <View style={styles.modalActions}>
                 <Button
                   variant="ghost"
-                  onPress={() => {
-                    setIosDraftDate(selectedDate ?? maxDate ?? new Date());
-                    setIosModalOpen(false);
-                  }}
+                  onPress={() => setIosModalOpen(false)}
                   style={styles.modalButton}
                 >
                   Cancelar
